@@ -10,16 +10,24 @@ export const localPartSchema = z
   .max(64, "That email is too long.")
   .regex(/^[a-z0-9._+-]+$/, "Use only the part before @, without spaces.");
 
+// Up to three well-formed labels in front of the institution domain, e.g.
+// caa.iitgn.ac.in. The database applies the same rule.
+const LABEL = "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?";
+export function isInstitutionDomain(host: string, domain: string) {
+  if (host === domain) return true;
+  const escaped = domain.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^(?:${LABEL}\\.){1,3}${escaped}$`).test(host);
+}
+
 // Accepts either "name" or "name@domain"; returns the full address on the
-// institution domain (or one of its subdomains, e.g. caa.iitgn.ac.in), or an
-// error message. The database decides which subdomains are actually allowed.
+// institution domain or any of its subdomains, or an error message.
 export function toInstitutionEmail(input: string, domain: string): { email?: string; error?: string } {
   const raw = input.trim().toLowerCase();
   let local = raw;
   let host = domain;
   if (raw.includes("@")) {
     const [l, d = "", ...rest] = raw.split("@");
-    const ok = rest.length === 0 && (d === domain || (d.endsWith(`.${domain}`) && /^[a-z0-9.-]+$/.test(d)));
+    const ok = rest.length === 0 && isInstitutionDomain(d, domain);
     if (!ok) return { error: `Use your @${domain} email.` };
     local = l;
     host = d;

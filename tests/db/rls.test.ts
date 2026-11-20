@@ -44,9 +44,34 @@ describe("sign-up rules", () => {
     await expect(signUp(db, "club.x@caa.iitgn.ac.in")).rejects.toThrow(/email_not_allowed/);
   });
 
-  it("accepts listed subdomains only", async () => {
+  it("accepts any IITGN subdomain", async () => {
     await expect(signUp(db, "neha.r@caa.iitgn.ac.in")).resolves.toBeTruthy();
-    await expect(signUp(db, "neha.r@other.iitgn.ac.in")).rejects.toThrow(/email_not_allowed/);
+    await expect(signUp(db, "neha.r@alumni.iitgn.ac.in")).resolves.toBeTruthy();
+    await expect(signUp(db, "kiran.j@a-b.c2.iitgn.ac.in")).resolves.toBeTruthy();
+    await expect(signUp(db, "Tara.M@Students.IITGN.ac.in")).resolves.toBeTruthy();
+  });
+
+  it("refuses look-alike and malformed domains", async () => {
+    for (const email of [
+      "neha@eviliitgn.ac.in",
+      "neha@iitgn.ac.in.example.com",
+      "neha@iitgn-ac.in",
+      "neha@iitgnxac.in",
+      "neha@.iitgn.ac.in",
+      "neha@a..iitgn.ac.in",
+      "neha@-caa.iitgn.ac.in",
+      "neha@caa-.iitgn.ac.in",
+      "neha@caa_x.iitgn.ac.in",
+      "neha@a.b.c.d.iitgn.ac.in",
+      "neha@caa.iitgn.ac.in@gmail.com",
+      "neha@iitgn.ac.in\n.example.com",
+    ]) {
+      await expect(signUp(db, email), email).rejects.toThrow(/email_not_allowed/);
+    }
+  });
+
+  it("still refuses shared mailboxes on subdomains", async () => {
+    await expect(signUp(db, "dean.x@alumni.iitgn.ac.in")).rejects.toThrow(/email_not_allowed/);
   });
 
   it("creates a profile and privacy settings for an allowed address", async () => {

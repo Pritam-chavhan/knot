@@ -15,9 +15,17 @@ describe("toInstitutionEmail", () => {
     expect(toInstitutionEmail("asha@eviliitgn.ac.in", D).error).toBeTruthy();
     expect(toInstitutionEmail("asha@a@iitgn.ac.in", D).error).toBeTruthy();
   });
-  it("accepts a full address on a subdomain", () => {
+  it("accepts a full address on any subdomain", () => {
     expect(toInstitutionEmail("Asha@CAA.iitgn.ac.in", D)).toEqual({ email: "asha@caa.iitgn.ac.in" });
+    expect(toInstitutionEmail("asha@alumni.iitgn.ac.in", D)).toEqual({ email: "asha@alumni.iitgn.ac.in" });
+    expect(toInstitutionEmail("asha@a-b.c2.iitgn.ac.in", D)).toEqual({ email: "asha@a-b.c2.iitgn.ac.in" });
   });
+  it.each(["eviliitgn.ac.in", "iitgn.ac.in.example.com", "iitgnxac.in", ".iitgn.ac.in", "a..iitgn.ac.in", "-caa.iitgn.ac.in", "caa-.iitgn.ac.in", "caa_x.iitgn.ac.in", "a.b.c.d.iitgn.ac.in"])(
+    "refuses %s",
+    (host) => {
+      expect(toInstitutionEmail(`asha@${host}`, D).error).toBeTruthy();
+    },
+  );
   it("refuses empty and malformed input", () => {
     expect(toInstitutionEmail("", D).error).toBeTruthy();
     expect(toInstitutionEmail("asha k", D).error).toBeTruthy();
