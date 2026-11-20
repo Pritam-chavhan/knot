@@ -10,9 +10,11 @@ const TAGS: Record<Tag, { label: string; className: string }> = {
   student: { label: "Student-hosted", className: "bg-marigold-tint text-[#6e4300]" },
 };
 
-export function TagPill({ tag }: { tag: Tag }) {
+// onTint: for use on a background already tinted in the tag's colour.
+export function TagPill({ tag, onTint = false }: { tag: Tag; onTint?: boolean }) {
   const t = TAGS[tag];
-  return <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${t.className}`}>{t.label}</span>;
+  const cls = onTint ? `bg-card ${t.className.split(" ").find((c) => c.startsWith("text-"))}` : t.className;
+  return <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${cls}`}>{t.label}</span>;
 }
 
 // The signature: a thread that loops into a knot. It draws itself once.

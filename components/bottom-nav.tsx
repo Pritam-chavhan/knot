@@ -10,6 +10,11 @@ const ITEMS = [
     icon: <><rect x="3.5" y="5" width="17" height="15.5" rx="4" /><path d="M3.5 10h17M8.5 3v4M15.5 3v4" /></>,
   },
   {
+    href: "/host/new",
+    label: "Host",
+    icon: <><circle cx="12" cy="12" r="8.5" /><path d="M12 8.5v7M8.5 12h7" /></>,
+  },
+  {
     href: "/profile",
     label: "You",
     icon: <><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20.5c.8-3.9 3.8-6.2 7.5-6.2s6.7 2.3 7.5 6.2" /></>,
@@ -24,9 +29,9 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-20 flex justify-center px-5"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)" }}
     >
-      <ul className="flex w-full max-w-[280px] gap-1 rounded-full bg-ink p-1.5 shadow-[0_16px_40px_-12px_rgba(23,20,43,0.55)]">
+      <ul className="flex w-full max-w-[340px] gap-1 rounded-full bg-ink p-1.5 shadow-[0_16px_40px_-12px_rgba(23,20,43,0.55)]">
         {ITEMS.map((it) => {
-          const active = path.startsWith(it.href);
+          const active = path.startsWith(it.href) || (it.href === "/discover" && path.startsWith("/events"));
           return (
             <li key={it.href} className="flex-1">
               <Link

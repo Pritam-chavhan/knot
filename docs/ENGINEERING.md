@@ -19,7 +19,8 @@ These rules come from the KNOT product requirements and apply to every change.
 - Every new table gets row-level security and tests in `tests/db/`.
 - Validate all input on the server with Zod before writing.
 
-9. Every page sends a nonce-based Content Security Policy and the headers in `lib/security/csp.ts`. Third-party scripts are not allowed. Any new remote origin (map tiles, image hosts) is added there deliberately, with a test.
+9. Students never write events, going/interested rows or join requests directly. They go through the database functions in `supabase/migrations/20261120030000_events_day2.sql`, which enforce capacity, host approval, blocks and rate limits in one transaction.
+10. Every page sends a nonce-based Content Security Policy and the headers in `lib/security/csp.ts`. Third-party scripts are not allowed. Any new remote origin (map tiles, image hosts) is added there deliberately, with a test.
 
 ## Data
 

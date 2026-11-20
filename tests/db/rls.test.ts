@@ -122,34 +122,30 @@ describe("events", () => {
     ).rejects.toThrow();
   });
 
-  it("students can host their own events, labelled student-hosted", async () => {
-    const id = await as(db, asha, async () => {
-      const r = await db.query<{ id: string }>(
-        `insert into public.events (institution_id, source_type, host_id, created_by, title, category, starts_at, join_mode, capacity)
-         values ($1, 'student_hosted', $2, $2, 'Jam session', 'music', now() + interval '2 days', 'open', 10) returning id`,
-        [institutionId, asha],
-      );
-      return r.rows[0].id;
-    });
-    const n = await as(db, ravi, () => count("select count(*) n from public.events where id = $1", [id]));
-    expect(n).toBe(1);
-    // Another student cannot edit it.
+  it("students host through the database function, labelled student-hosted", async () => {
+    const id = await as(db, asha, async () =>
+      (await db.query<{ id: string }>(
+        "select public.create_hosted_event('Jam session', 'music', now() + interval '2 days', null, 'Music room', null, 10, 'open') as id",
+      )).rows[0].id,
+    );
+    expect(await as(db, ravi, () => count("select count(*) n from public.events where id = $1", [id]))).toBe(1);
+    const row = (await db.query<{ source_type: string; host_id: string }>("select source_type, host_id from public.events where id = $1", [id])).rows[0];
+    expect(row).toEqual({ source_type: "student_hosted", host_id: asha });
     await as(db, ravi, () => db.query("update public.events set title = 'Taken over' where id = $1", [id]));
     const title = (await db.query<{ title: string }>("select title from public.events where id = $1", [id])).rows[0].title;
     expect(title).toBe("Jam session");
   });
 
-  it("drafts are hidden from other students", async () => {
-    const id = await as(db, asha, async () => {
+  it("drafts are hidden from students", async () => {
+    const id = await as(db, admin, async () => {
       const r = await db.query<{ id: string }>(
-        `insert into public.events (institution_id, source_type, host_id, created_by, title, category, starts_at, status)
-         values ($1, 'student_hosted', $2, $2, 'Secret draft', 'social', now() + interval '3 days', 'draft') returning id`,
-        [institutionId, asha],
+        `insert into public.events (institution_id, source_type, verified_by, created_by, title, category, starts_at, status)
+         values ($1, 'official', $2, $2, 'Secret draft', 'social', now() + interval '3 days', 'draft') returning id`,
+        [institutionId, admin],
       );
       return r.rows[0].id;
     });
     expect(await as(db, ravi, () => count("select count(*) n from public.events where id = $1", [id]))).toBe(0);
-    expect(await as(db, asha, () => count("select count(*) n from public.events where id = $1", [id]))).toBe(1);
   });
 });
 
@@ -158,14 +154,14 @@ describe("participation and privacy", () => {
     const eventId = await publishCommunityEvent();
     await as(db, asha, () =>
       db.query(
-        "insert into public.event_participation (event_id, profile_id, state, is_visible) values ($1, $2, 'going', true)",
-        [eventId, asha],
+        "select public.set_my_participation($1, 'going', true)",
+        [eventId],
       ),
     );
     await as(db, meera, () =>
       db.query(
-        "insert into public.event_participation (event_id, profile_id, state, is_visible) values ($1, $2, 'going', false)",
-        [eventId, meera],
+        "select public.set_my_participation($1, 'going', false)",
+        [eventId],
       ),
     );
     const counts = await as(db, ravi, () =>
@@ -196,8 +192,8 @@ describe("blocking", () => {
     const eventId = await publishCommunityEvent("Football 5-a-side");
     await as(db, ravi, () =>
       db.query(
-        "insert into public.event_participation (event_id, profile_id, state, is_visible) values ($1, $2, 'going', true)",
-        [eventId, ravi],
+        "select public.set_my_participation($1, 'going', true)",
+        [eventId],
       ),
     );
     await as(db, meera, () => db.query("insert into public.blocks (blocker_id, blocked_id) values ($1, $2)", [meera, ravi]));
