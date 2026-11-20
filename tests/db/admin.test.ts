@@ -150,3 +150,114 @@ describe("security review fixes", () => {
     expect(rows).toHaveLength(0);
   });
 });
+
+describe("email feed", () => {
+  const inst = async () => (await db.query<{ id: string }>("select id from public.institutions limit 1")).rows[0].id;
+  const claim = async (hash: string) => (await db.query<{ id: string | null; state: string; attempts: number }>("select * from public.ingest_claim($1, $2)", [await inst(), hash])).rows[0];
+
+  it("students can't read the mail log or the ingest token hash", async () => {
+    await db.query("update public.institutions set ingest_token_hash = repeat('a', 64)");
+    await expect(rpc(s1, "select ingest_token_hash from public.institutions")).rejects.toThrow(/permission denied/);
+    await expect(rpc(s1, "select ingest_official_senders from public.institutions")).rejects.toThrow(/permission denied/);
+    expect(await rpc(s1, "select name from public.institutions")).toHaveLength(1);
+    await expect(rpc(s1, "insert into public.source_announcements (institution_id, raw_text) select id, 'x' from public.institutions")).rejects.toThrow(/permission denied/);
+    await expect(rpc(s1, "select * from public.admin_inbox()")).rejects.toThrow(/not_allowed/);
+    await expect(rpc(s1, "select public.admin_inbox_stats()")).rejects.toThrow(/not_allowed/);
+    await expect(rpc(s1, "select * from public.ingest_claim($1, repeat('d', 64))", [await inst()])).rejects.toThrow(/permission denied/);
+  });
+
+  it("skipped mail can't keep any text", async () => {
+    await expect(
+      db.query("insert into public.source_announcements (institution_id, raw_text, subject, outcome, message_hash) select id, 'secret', 'Re: marks', 'not_event', repeat('b', 64) from public.institutions"),
+    ).rejects.toThrow(/no_text_when_skipped/);
+  });
+
+  it("claims each mail once, and takes over a claim left hanging for 3 minutes", async () => {
+    const hash = "e".repeat(64);
+    const first = await claim(hash);
+    expect(first).toMatchObject({ state: "claimed", attempts: 1 });
+    expect(await claim(hash)).toMatchObject({ id: null, state: "in_progress" });
+    await db.query("update public.source_announcements set received_at = now() - interval '4 minutes' where id = $1", [first.id]);
+    expect(await claim(hash)).toMatchObject({ id: first.id, state: "claimed", attempts: 2 });
+    await db.query("update public.source_announcements set outcome = 'not_event' where id = $1", [first.id]);
+    expect(await claim(hash)).toMatchObject({ id: null, state: "seen" });
+  });
+
+  it("official events from mail need a recorded sender or a person", async () => {
+    await expect(
+      db.query("insert into public.events (institution_id, source_type, title, category, starts_at) select id, 'official', 'No source', 'talk', now() + interval '1 day' from public.institutions"),
+    ).rejects.toThrow(/events_official_verified/);
+    await db.query("insert into public.events (institution_id, source_type, title, category, starts_at, mail_sender) select id, 'official', 'From the dean', 'talk', now() + interval '1 day', 'dosa@iitgn.ac.in' from public.institutions");
+  });
+
+  it("lets admins review, edit and publish, but not revive cancelled events", async () => {
+    const { rows } = await db.query<{ id: string }>(
+      "insert into public.source_announcements (institution_id, raw_text, subject, from_address, outcome, message_hash, sender_verified) select id, 'Talk on Friday', 'Talk', 'Robotics <robotics@iitgn.ac.in>', 'needs_review', repeat('c', 64), true from public.institutions returning id",
+    );
+    const ev = await db.query<{ id: string }>(
+      "insert into public.events (institution_id, source_type, source_announcement_id, title, category, starts_at, review_status, mail_sender) select id, 'community', $1, 'Guest talk', 'talk', now() + interval '2 days', 'pending', 'robotics@iitgn.ac.in' from public.institutions returning id",
+      [rows[0].id],
+    );
+    await db.query("update public.source_announcements set event_id = $1 where id = $2", [ev.rows[0].id, rows[0].id]);
+    const inbox = await rpc<{ outcome: string; event_title: string; sender_verified: boolean; sender_official: boolean }>(admin, "select * from public.admin_inbox()");
+    expect(inbox[0]).toMatchObject({ outcome: "needs_review", event_title: "Guest talk", sender_verified: true, sender_official: false });
+
+    await rpc(admin, "select public.admin_save_event($1, 'community', 'Guest talk: robots', 'talk', now() + interval '2 days', null, 'AB 1/101', 'Robotics Club', null, null)", [ev.rows[0].id]);
+    const saved = await db.query<{ title: string; review_status: string }>("select title, review_status from public.events where id = $1", [ev.rows[0].id]);
+    expect(saved.rows[0]).toEqual({ title: "Guest talk: robots", review_status: "approved" });
+    const log = await db.query("select 1 from public.moderation_actions where action = 'edit_event' and target_id = $1", [ev.rows[0].id]);
+    expect(log.rows).toHaveLength(1);
+
+    await db.query("update public.events set status = 'cancelled' where id = $1", [ev.rows[0].id]);
+    await expect(
+      rpc(admin, "select public.admin_save_event($1, 'community', 'Back again', 'talk', now() + interval '2 days', null, 'AB', null, null, null)", [ev.rows[0].id]),
+    ).rejects.toThrow(/not_editable/);
+    await expect(rpc(s1, "select public.admin_save_event($1, 'community', 'Mine now', 'talk', now() + interval '2 days', null, 'AB', null, null, null)", [ev.rows[0].id])).rejects.toThrow(/not_allowed/);
+  });
+
+  it("applies a proposed change only when an admin says so, once", async () => {
+    const ev = await db.query<{ id: string }>(
+      "insert into public.events (institution_id, source_type, title, category, starts_at, venue, mail_sender) select id, 'community', 'Open mic', 'music', now() + interval '3 days', 'Central arcade', 'music@iitgn.ac.in' from public.institutions returning id",
+    );
+    const { rows } = await db.query<{ id: string }>(
+      `insert into public.source_announcements (institution_id, raw_text, subject, from_address, outcome, message_hash, event_id, proposal)
+       select id, 'Venue moved', 'Venue change', 'someone@iitgn.ac.in', 'needs_review', repeat('f', 64), $1,
+              jsonb_build_object('kind', 'update', 'before', jsonb_build_object('venue', 'Central arcade'), 'after', jsonb_build_object('venue', 'Jasubhai Auditorium'))
+       from public.institutions returning id`,
+      [ev.rows[0].id],
+    );
+    await expect(rpc(s1, "select public.admin_resolve_proposal($1, true)", [rows[0].id])).rejects.toThrow(/not_allowed/);
+    expect((await db.query<{ venue: string }>("select venue from public.events where id = $1", [ev.rows[0].id])).rows[0].venue).toBe("Central arcade");
+    await rpc(admin, "select public.admin_resolve_proposal($1, true)", [rows[0].id]);
+    expect((await db.query<{ venue: string }>("select venue from public.events where id = $1", [ev.rows[0].id])).rows[0].venue).toBe("Jasubhai Auditorium");
+    await expect(rpc(admin, "select public.admin_resolve_proposal($1, true)", [rows[0].id])).rejects.toThrow(/not_found/);
+  });
+
+  it("keeps a list of official senders", async () => {
+    await rpc(admin, "select public.admin_set_official_sender('DoSA@IITGN.ac.in', true)");
+    await rpc(admin, "select public.admin_set_official_sender('dosa@iitgn.ac.in', true)");
+    const { rows } = await db.query<{ s: string[] }>("select ingest_official_senders s from public.institutions");
+    expect(rows[0].s).toEqual(["dosa@iitgn.ac.in"]);
+    await expect(rpc(admin, "select public.admin_set_official_sender('not an address', true)")).rejects.toThrow(/bad_address/);
+    await expect(rpc(s1, "select public.admin_set_official_sender('x@iitgn.ac.in', true)")).rejects.toThrow(/not_allowed/);
+  });
+
+  it("erases kept mail text after 30 days", async () => {
+    await db.query("update public.source_announcements set processed_at = now() - interval '31 days' where raw_text is not null");
+    const { rows } = await db.query<{ n: number }>("select public.ingest_purge_text() as n");
+    expect(rows[0].n).toBeGreaterThan(0);
+    const left = await db.query("select 1 from public.source_announcements where raw_text is not null or subject is not null");
+    expect(left.rows).toHaveLength(0);
+  });
+
+  it("lets a real announcement through after a same-named event was discarded", async () => {
+    const make = (review: string) =>
+      db.query(
+        "insert into public.events (institution_id, source_type, title, category, starts_at, dedupe_key, review_status) select id, 'community', 'Keynote', 'talk', now() + interval '5 days', 'mail:x:keynote', $1 from public.institutions",
+        [review],
+      );
+    await make("rejected");
+    await make("pending");
+    await expect(make("pending")).rejects.toThrow(/events_dedupe/);
+  });
+});
