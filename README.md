@@ -38,6 +38,7 @@ KNOT puts everything happening on campus in one feed, shows how many people are 
 | **My plans** | Everything you're going to, interested in or hosting, sorted by day, with one-tap filters. |
 | **Activity** | Join requests waiting for you (with a badge in the tab bar), replies to your requests and what's starting in the next 24 hours. |
 | **Privacy by default** | College email only. Names hidden until a student opts in. Blocks hide people from each other everywhere. |
+| **Live campus email feed** | A small script in the founder's Gmail sends new mailing-list mail to KNOT every minute. AI decides whether each mail announces an event, changes one (new time, new venue, cancelled) or is unrelated. Clear events go live on their own, unclear ones wait in the dashboard Inbox, and open Discover screens show a "new events" pill straight away. |
 | **Founder dashboard** | Sign-ups, daily and weekly active students, a 30-day chart, people search, suspend and restore, admin roles, event moderation and an audit log. |
 | **Hands-on onboarding** | A six-step tour where new students try each feature with example IITGN plans before they set up a profile. |
 
@@ -93,6 +94,7 @@ flowchart LR
 - Admin actions are recorded in an audit log, and admins can't suspend or demote themselves.
 - Activity tracking is one row per student per day, used only for active-user counts.
 - Profile photos live in a private bucket. Every upload is re-encoded on the server, which removes location data from phone photos, and photos are only served to signed-in students who can see that profile.
+- The email feed authenticates with a random token whose SHA-256 is the only thing stored. Mail that isn't about an event is discarded on arrival; only a fingerprint of its Message-ID is kept so it's never processed twice. Mail content is treated as untrusted: the AI's answer is validated field by field, links must be `https://`, and only upcoming institute and club events can be updated or cancelled by a mail.
 - Links are stored as usernames and always rebuilt as links to the official site, so a profile can't point anywhere else.
 - Every change is reviewed against these rules. Findings and fixes are covered by tests in `tests/db/`.
 
@@ -108,10 +110,26 @@ flowchart LR
 
 CI runs lint, type checks, all tests, a dependency audit, a production build and the browser tests on every push.
 
+## Campus email feed
+
+```mermaid
+flowchart LR
+  G["Gmail script<br/>(every minute, mailing lists only)"] -->|"HTTPS + token"| API["/api/ingest/email"]
+  API --> AI["AI: event, change<br/>or unrelated?"]
+  AI --> R{"Confident and<br/>upcoming?"}
+  R -->|yes| P["Published on Discover"]
+  R -->|unsure| Q["Dashboard Inbox<br/>publish, edit or discard"]
+  R -->|not an event| X["Discarded, not stored"]
+  P -. realtime .-> D["Open Discover screens"]
+```
+
+Setup: run [`tools/gmail-feed.gs`](tools/gmail-feed.gs) in Google Apps Script with your feed token, and set `ANTHROPIC_API_KEY` on the server.
+
 ## Tech stack
 
 - **App:** Next.js 15 (App Router, Server Components, Server Actions), React 19, TypeScript, Tailwind CSS 4
 - **Data:** Supabase (Postgres, row-level security, Auth)
+- **AI:** Claude (Anthropic API) for reading campus mail
 - **Validation:** Zod
 - **Testing:** Vitest with PGlite for database tests, Playwright with axe-core for browser tests
 - **Hosting:** Vercel
