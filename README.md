@@ -123,13 +123,13 @@ flowchart LR
   P -. realtime .-> D["Open Discover screens"]
 ```
 
-Setup: run [`tools/gmail-feed.gs`](tools/gmail-feed.gs) in Google Apps Script with your feed token, and set `ANTHROPIC_API_KEY` and `AI_MODEL` on the server.
+Setup: run [`tools/gmail-feed.gs`](tools/gmail-feed.gs) in Google Apps Script with your feed token, and set `AI_PROVIDER`, its API key and `AI_MODEL` on the server. Email addresses and phone numbers are removed from each mail before it is sent to the AI provider.
 
 ## Tech stack
 
 - **App:** Next.js 15 (App Router, Server Components, Server Actions), React 19, TypeScript, Tailwind CSS 4
 - **Data:** Supabase (Postgres, row-level security, Auth)
-- **AI:** Anthropic API for reading campus mail
+- **AI:** Google Gemini API for reading campus mail (Anthropic API supported as an alternative)
 - **Validation:** Zod
 - **Testing:** Vitest with PGlite for database tests, Playwright with axe-core for browser tests
 - **Hosting:** Vercel

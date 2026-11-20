@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isInstitutionDomain } from "@/features/auth/validation";
 import { toIstLocalInput } from "@/lib/time";
-import { extractEvents, ExtractionFailed, type Candidate } from "./extract";
+import { extractEvents, ExtractionFailed, ExtractionUnavailable, type Candidate } from "./extract";
 import { cleanBody, decideItem, senderAddress, type Decision, type Sender } from "./decide";
 
 export type IncomingMail = { id: string; from: string; subject: string; date: string; body: string; verified: boolean };
@@ -153,6 +153,16 @@ export async function processMail(admin: SupabaseClient, inst: Institution, mail
       toIstLocalInput(now).slice(0, 10),
     );
   } catch (e) {
+    if (e instanceof ExtractionUnavailable) {
+      // Let the next run pick this mail up straight away instead of waiting
+      // out the 3-minute claim.
+      await admin
+        .from("source_announcements")
+        .update({ received_at: new Date(Date.now() - 10 * 60_000).toISOString() })
+        .eq("id", claim.id)
+        .eq("outcome", "pending");
+      throw e;
+    }
     if (!(e instanceof ExtractionFailed)) throw e;
     await finish(admin, claim.id, { ...keep, outcome: "error", status: "rejected", ai_note: "The AI couldn't read this mail. Add it by hand if it's an event." });
     return "error";

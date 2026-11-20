@@ -21,7 +21,7 @@ const KNOT_TOKEN = "PASTE_YOUR_TOKEN_HERE";
 const QUERY = "list:iitgn.ac.in -from:me -in:chats -in:spam -in:trash";
 
 const BATCH = 5; // mails per request
-const MAX_PER_RUN = 25; // the rest follow on the next run
+const MAX_PER_RUN = 10; // the rest follow on the next run (fits free AI rate limits)
 const FIRST_LOOK_BACK_DAYS = 3; // so events already announced show up
 
 function setup() {
