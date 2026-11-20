@@ -1,6 +1,9 @@
 {
   "name": "knot",
   "version": "0.1.0",
+  "description": "KNOT: every event at IIT Gandhinagar, who's going, and an easy way to go together.",
+  "author": "Pritam Chavhan",
+  "homepage": "https://knot-tau.vercel.app",
   "private": true,
   "scripts": {
     "dev": "next dev",

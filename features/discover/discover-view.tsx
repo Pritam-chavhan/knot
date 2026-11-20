@@ -124,7 +124,7 @@ export function DiscoverView({
                 <section key={key} className="mt-7" aria-labelledby={`day-${key}`}>
                   <h2 id={`day-${key}`} className="font-display text-[22px] font-extrabold">
                     {dayLabel(d, now)}
-                    <span className="ml-2 text-[14px] font-semibold text-muted">{list.length} on</span>
+                    <span className="ml-2 text-[14px] font-semibold text-muted">{list.length === 1 ? "1 event" : `${list.length} events`}</span>
                   </h2>
                   <ul className="mt-3 flex flex-col gap-3">
                     {list.map((e) => (
