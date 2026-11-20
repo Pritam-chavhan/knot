@@ -11,18 +11,22 @@ export const localPartSchema = z
   .regex(/^[a-z0-9._+-]+$/, "Use only the part before @, without spaces.");
 
 // Accepts either "name" or "name@domain"; returns the full address on the
-// institution domain, or an error message.
+// institution domain (or one of its subdomains, e.g. caa.iitgn.ac.in), or an
+// error message. The database decides which subdomains are actually allowed.
 export function toInstitutionEmail(input: string, domain: string): { email?: string; error?: string } {
   const raw = input.trim().toLowerCase();
   let local = raw;
+  let host = domain;
   if (raw.includes("@")) {
-    const [l, d] = raw.split("@");
-    if (d !== domain) return { error: `Use your @${domain} email.` };
+    const [l, d = "", ...rest] = raw.split("@");
+    const ok = rest.length === 0 && (d === domain || (d.endsWith(`.${domain}`) && /^[a-z0-9.-]+$/.test(d)));
+    if (!ok) return { error: `Use your @${domain} email.` };
     local = l;
+    host = d;
   }
   const parsed = localPartSchema.safeParse(local);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  return { email: `${parsed.data}@${domain}` };
+  return { email: `${parsed.data}@${host}` };
 }
 
 export const codeSchema = z

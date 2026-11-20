@@ -41,6 +41,12 @@ describe("sign-up rules", () => {
   it("refuses shared office and club addresses", async () => {
     await expect(signUp(db, "dean.ga@iitgn.ac.in")).rejects.toThrow(/email_not_allowed/);
     await expect(signUp(db, "caa@iitgn.ac.in")).rejects.toThrow(/email_not_allowed/);
+    await expect(signUp(db, "club.x@caa.iitgn.ac.in")).rejects.toThrow(/email_not_allowed/);
+  });
+
+  it("accepts listed subdomains only", async () => {
+    await expect(signUp(db, "neha.r@caa.iitgn.ac.in")).resolves.toBeTruthy();
+    await expect(signUp(db, "neha.r@other.iitgn.ac.in")).rejects.toThrow(/email_not_allowed/);
   });
 
   it("creates a profile and privacy settings for an allowed address", async () => {
@@ -56,7 +62,9 @@ describe("profiles", () => {
   });
 
   it("are visible to other members", async () => {
-    const n = await as(db, asha, () => count("select count(*) n from public.profiles"));
+    const n = await as(db, asha, () =>
+      count("select count(*) n from public.profiles where id = any($1)", [[asha, ravi, meera, admin]]),
+    );
     expect(n).toBe(4);
   });
 

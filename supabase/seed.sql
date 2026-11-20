@@ -41,3 +41,8 @@ insert into public.interests (name) values
   ('Badminton'), ('Basketball'), ('Running'), ('Gym'), ('Chess'), ('Board games'),
   ('Video games'), ('Anime'), ('Cooking'), ('Travel'), ('Volunteering'), ('Late-night chai')
 on conflict (name) do nothing;
+
+-- Subdomains whose addresses also belong to IITGN students.
+update public.institutions
+set extra_domains = array['caa.iitgn.ac.in']
+where email_domain = 'iitgn.ac.in';

@@ -12,6 +12,11 @@ describe("toInstitutionEmail", () => {
   });
   it("refuses other domains", () => {
     expect(toInstitutionEmail("asha@gmail.com", D).error).toMatch(/iitgn\.ac\.in/);
+    expect(toInstitutionEmail("asha@eviliitgn.ac.in", D).error).toBeTruthy();
+    expect(toInstitutionEmail("asha@a@iitgn.ac.in", D).error).toBeTruthy();
+  });
+  it("accepts a full address on a subdomain", () => {
+    expect(toInstitutionEmail("Asha@CAA.iitgn.ac.in", D)).toEqual({ email: "asha@caa.iitgn.ac.in" });
   });
   it("refuses empty and malformed input", () => {
     expect(toInstitutionEmail("", D).error).toBeTruthy();
