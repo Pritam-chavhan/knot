@@ -73,7 +73,7 @@ export function Avatar({ name, size = 40, index, className = "" }: { name: strin
   const initials = name
     .trim()
     .split(/\s+/)
-    .slice(0, size < 36 ? 1 : 2)
+    .slice(0, size < 44 ? 1 : 2)
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
   const i = index ?? [...name].reduce((a, c) => a + c.charCodeAt(0), 0);

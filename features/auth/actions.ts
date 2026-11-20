@@ -16,9 +16,9 @@ export async function sendCode(_prev: FormState, formData: FormData): Promise<Fo
   // Refuse shared and role addresses before any email is sent.
   const admin = createAdminClient();
   const { data: allowed, error: checkError } = await admin.rpc("email_is_allowed", { p_email: email });
-  if (checkError) return { error: "Something went wrong. Please try again." };
+  if (checkError) return { error: "We couldn't check your email just now. Try again in a moment." };
   if (!allowed) {
-    return { error: "This address can't be used. Sign in with your personal student email." };
+    return { error: "This looks like a shared or office address. Use your own student email." };
   }
 
   const h = await headers();
@@ -29,8 +29,8 @@ export async function sendCode(_prev: FormState, formData: FormData): Promise<Fo
     options: { shouldCreateUser: true, emailRedirectTo: `${origin}/auth/callback` },
   });
   if (otpError) {
-    if (otpError.status === 429) return { error: "Too many codes requested. Wait a minute and try again." };
-    return { error: "We couldn't send a code right now. Please try again." };
+    if (otpError.status === 429) return { error: "You've asked for a few links in a row. Wait a minute, then try again." };
+    return { error: "Your sign-in link didn't send. Try again in a moment." };
   }
   redirect(`/auth/verify?email=${encodeURIComponent(email)}`);
 }
@@ -42,7 +42,7 @@ export async function verifyCode(_prev: FormState, formData: FormData): Promise<
 
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({ email, token: parsed.data, type: "email" });
-  if (error) return { email, error: "That code didn't work. Check it, or request a new one." };
+  if (error) return { email, error: "That code didn't match. Check the latest email, or ask for a new link." };
   redirect("/discover");
 }
 

@@ -43,3 +43,20 @@ test("signed-out visitors are sent to the landing page", async ({ page }) => {
   await page.goto("/discover");
   await expect(page).toHaveURL(/\/$/);
 });
+
+test("the landing demos respond to taps", async ({ page }) => {
+  await page.goto("/");
+  const going = page.getByRole("button", { name: "I'm going" });
+  await going.click();
+  await expect(page.getByRole("button", { name: "You're going" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("15", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Ask to join" }).click();
+  await expect(page.getByText("Rohan let you in. See you on court at 6.")).toBeVisible();
+
+  await page.getByRole("button", { name: /Wave at Ananya/ }).click();
+  await expect(page.getByText("Ananya waved back")).toBeVisible();
+
+  await page.getByRole("switch", { name: "Show me as going" }).click();
+  await expect(page.getByText("One more person is going")).toBeVisible();
+});

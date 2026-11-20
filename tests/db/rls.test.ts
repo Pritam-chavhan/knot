@@ -85,6 +85,30 @@ describe("profiles", () => {
   });
 });
 
+describe("interests", () => {
+  const mine = async (id: string) =>
+    (await db.query<{ interest_id: number }>(
+      "select interest_id from public.profile_interests where profile_id = $1 order by 1", [id],
+    )).rows.map((r) => r.interest_id);
+
+  it("are replaced in one step and only for the caller", async () => {
+    await as(db, asha, () => db.query("select public.set_my_interests($1)", [[1, 2, 2, 3]]));
+    expect(await mine(asha)).toEqual([1, 2, 3]);
+    await as(db, asha, () => db.query("select public.set_my_interests($1)", [[4]]));
+    expect(await mine(asha)).toEqual([4]);
+    expect(await mine(ravi)).toEqual([]);
+  });
+
+  it("keeps the old interests if the new list is refused", async () => {
+    await expect(
+      as(db, asha, () => db.query("select public.set_my_interests($1)", [[1, 2, 3, 4, 5, 6, 7, 8, 9]])),
+    ).rejects.toThrow(/too_many_interests/);
+    expect(await mine(asha)).toEqual([4]);
+    await expect(as(db, asha, () => db.query("select public.set_my_interests($1)", [[4, 99999]]))).rejects.toThrow();
+    expect(await mine(asha)).toEqual([4]);
+  });
+});
+
 describe("events", () => {
   it("students cannot create community or official events", async () => {
     await expect(
