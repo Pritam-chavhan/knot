@@ -18,8 +18,12 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run build
-        env:
+        env: &placeholder_env
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env: *placeholder_env

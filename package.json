@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -20,16 +21,28 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@electric-sql/pglite": "^0.5.17",
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.29",
+    "lighthouse": "^13.6.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.7"
-  }
+  },
+  "overrides": {
+    "postcss": "^8.5.23"
+  },
+  "browserslist": [
+    "chrome >= 111",
+    "safari >= 16.4",
+    "firefox >= 128",
+    "edge >= 111"
+  ]
 }

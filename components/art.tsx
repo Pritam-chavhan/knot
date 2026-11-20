@@ -166,7 +166,7 @@ export function HostMini() {
         ))}
         <span className="ml-2 text-[12px] font-semibold text-river-deep">3 of 4</span>
       </div>
-      <span className="mt-3 inline-flex rounded-full bg-river px-4 py-2 text-[13px] font-bold text-white">Ask to join</span>
+      <span className="mt-3 inline-flex rounded-full bg-river-deep px-4 py-2 text-[13px] font-bold text-white">Ask to join</span>
     </div>
   );
 }
@@ -175,7 +175,7 @@ export function MapMini({ className = "" }: { className?: string }) {
   const people = [
     { x: 92, y: 70, c: "#5a3df0", n: "AK" },
     { x: 196, y: 54, c: "#f2547d", n: "RP" },
-    { x: 228, y: 128, c: "#0e9f8e", n: "MS" },
+    { x: 228, y: 128, c: "#0a7568", n: "MS" },
     { x: 140, y: 150, c: "#17142b", n: "NT" },
   ];
   return (
@@ -225,7 +225,7 @@ export function SafetyMini() {
     <ul className="flex flex-col gap-2">
       {rows.map((r) => (
         <li key={r} className="flex items-center gap-3 rounded-2xl bg-card px-3.5 py-3 text-[14px] font-semibold">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-river text-white">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-river-deep text-white">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M5 12.5l4.5 4.5L19 7.5" />
             </svg>

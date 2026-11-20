@@ -67,7 +67,7 @@ export function Card({ className = "", children }: { className?: string; childre
   return <div className={`rounded-[28px] bg-card p-5 ${className}`}>{children}</div>;
 }
 
-const AVATAR_COLORS = ["bg-thread text-white", "bg-marigold text-ink", "bg-river text-white", "bg-rose text-white", "bg-ink text-white"];
+const AVATAR_COLORS = ["bg-thread text-white", "bg-marigold text-ink", "bg-river-deep text-white", "bg-rose text-ink", "bg-ink text-white"];
 
 export function Avatar({ name, size = 40, index, className = "" }: { name: string; size?: number; index?: number; className?: string }) {
   const initials = name
