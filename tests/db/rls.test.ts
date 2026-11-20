@@ -71,7 +71,7 @@ describe("profiles", () => {
   it("cannot be promoted to admin by their owner", async () => {
     await expect(
       as(db, asha, () => db.query("update public.profiles set role = 'admin' where id = $1", [asha])),
-    ).rejects.toThrow(/not_allowed/);
+    ).rejects.toThrow(/permission denied/);
   });
 
   it("cannot be edited by another student", async () => {

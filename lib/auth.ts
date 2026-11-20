@@ -12,6 +12,7 @@ export type Profile = {
   role: "student" | "admin";
   status: "active" | "suspended";
   onboarded_at: string | null;
+  is_founder?: boolean;
 };
 
 // Returns the signed-in student's profile, or sends them to the right place.
@@ -22,17 +23,20 @@ export async function requireMember(options: { allowNotOnboarded?: boolean } = {
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, email, display_name, programme, batch_year, bio, role, status, onboarded_at")
-    .eq("id", user.id)
-    .single<Profile>();
+  // Your own full profile (email, role) comes from a function: classmates can
+  // only read public profile fields.
+  const { data: rows } = await supabase.rpc("my_profile");
+  const profile = (rows as Profile[] | null)?.[0];
 
   if (!profile) {
     await supabase.auth.signOut();
     redirect("/?error=no-profile");
   }
-  if (profile.status !== "active") redirect("/?error=suspended");
+  if (profile.status !== "active") {
+    // Sign out first, or the landing page would send them straight back here.
+    await supabase.auth.signOut();
+    redirect("/?error=suspended");
+  }
   // New students see the welcome tour first; it ends on the profile setup.
   if (!profile.onboarded_at && !options.allowNotOnboarded) redirect("/welcome");
   return { supabase, user, profile };

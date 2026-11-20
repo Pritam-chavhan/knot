@@ -63,8 +63,8 @@ export function DiscoverView({
           Host a plan
         </ButtonLink>
         {profile.role === "admin" && (
-          <ButtonLink href="/admin/events/new" variant="dark" className="h-12">
-            Add event
+          <ButtonLink href="/admin" variant="dark" className="h-12">
+            Dashboard
           </ButtonLink>
         )}
       </div>

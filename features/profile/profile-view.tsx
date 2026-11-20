@@ -60,6 +60,14 @@ export function ProfileView({ profile, data, deleteState }: { profile: Profile; 
       <PrivacyForm showGoing={data.showGoing} allowRequests={data.allowRequests} />
 
       <div className="mt-8 flex flex-col gap-3">
+        {profile.role === "admin" && (
+          <Link href="/admin" className="flex items-center justify-between rounded-[24px] bg-ink px-5 py-4 text-white">
+            <span className="font-bold">Founder dashboard</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </Link>
+        )}
         <Link href="/welcome" className="flex items-center justify-between rounded-[24px] bg-card px-5 py-4">
           <span className="font-bold">How KNOT works</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
