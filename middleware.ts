@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/auth/verify", "/privacy", "/terms"];
+const PUBLIC_PATHS = ["/", "/auth/verify", "/auth/callback", "/privacy", "/terms"];
 
 // Keeps the Supabase session fresh and sends signed-out visitors to the
 // landing page. Profile and onboarding checks happen in the app layout.

@@ -23,7 +23,8 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
         Check your <em>inbox</em>.
       </h1>
       <p className="mt-3 text-base text-soft">
-        We sent a 6-digit code to <span className="font-semibold text-ink">{masked}</span>. It expires in an hour.
+        We sent a sign-in email to <span className="font-semibold text-ink">{masked}</span>. Tap the link in it on this
+        phone, or enter the 6-digit code if the email shows one.
       </p>
       <div className="mt-8">
         <VerifyForm email={email} />

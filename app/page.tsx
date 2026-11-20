@@ -6,6 +6,7 @@ import { SignInForm } from "./sign-in-form";
 const ERRORS: Record<string, string> = {
   suspended: "This account is suspended. Contact the KNOT team if you think this is a mistake.",
   "no-profile": "We couldn't find your profile. Please sign in again.",
+  link: "That sign-in link has expired or was opened on a different device. Request a new one here.",
 };
 
 export default async function Landing({ searchParams }: { searchParams: Promise<{ error?: string }> }) {

@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,10 +21,12 @@ export async function sendCode(_prev: FormState, formData: FormData): Promise<Fo
     return { error: "This address can't be used. Sign in with your personal student email." };
   }
 
+  const h = await headers();
+  const origin = h.get("origin") ?? `https://${h.get("host")}`;
   const supabase = await createClient();
   const { error: otpError } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: { shouldCreateUser: true, emailRedirectTo: `${origin}/auth/callback` },
   });
   if (otpError) {
     if (otpError.status === 429) return { error: "Too many codes requested. Wait a minute and try again." };
