@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { requireMember } from "@/lib/auth";
-import { Button, Card } from "@/components/ui";
+import { Avatar, Button, Toggle } from "@/components/ui";
 import { ProfileForm } from "@/features/profile/profile-form";
 import { loadProfileFormData } from "@/features/profile/queries";
 import { deleteAccount, savePrivacy } from "@/features/profile/actions";
@@ -7,78 +8,101 @@ import { signOut } from "@/features/auth/actions";
 
 const DELETE_MESSAGES: Record<string, string> = {
   confirm: "Type DELETE in capitals to confirm.",
-  failed: "We couldn't delete your account. Please try again.",
+  failed: "Your account wasn't deleted. Try again in a minute.",
 };
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ delete?: string }> }) {
   const { supabase, user, profile } = await requireMember();
   const data = await loadProfileFormData(supabase, user.id);
   const { delete: deleteState } = await searchParams;
+  const name = profile.display_name ?? "You";
+  const myInterests = data.interests.filter((i) => data.interestIds.includes(i.id));
 
   return (
     <main className="px-5 pt-6">
-      <h1 className="font-serif text-[34px] leading-tight">
-        You, <em>on KNOT</em>
-      </h1>
-      <p className="mt-1 text-sm text-muted">{profile.email}</p>
-
-      <section className="mt-6" aria-labelledby="profile-h">
-        <h2 id="profile-h" className="sr-only">
-          Profile
-        </h2>
-        <ProfileForm
-          interests={data.interests}
-          initial={{
-            displayName: profile.display_name ?? "",
-            programme: profile.programme ?? "",
-            batchYear: profile.batch_year,
-            bio: profile.bio ?? "",
-            interestIds: data.interestIds,
-            showGoing: data.showGoing,
-          }}
-          submitLabel="Save profile"
-        />
+      <section className="rounded-[30px] bg-ink p-6 text-white">
+        <div className="flex items-center gap-4">
+          <Avatar name={name} size={64} index={0} className="ring-ink" />
+          <div className="min-w-0">
+            <h1 className="font-display truncate text-[28px] leading-tight font-extrabold">{name}</h1>
+            <p className="text-[14px] text-white/70">
+              {[profile.programme, profile.batch_year && `Class of ${profile.batch_year}`].filter(Boolean).join(", ")}
+            </p>
+          </div>
+        </div>
+        {profile.bio && <p className="mt-4 text-[15px] leading-relaxed text-white/85">{profile.bio}</p>}
+        {myInterests.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-1.5">
+            {myInterests.map((i) => (
+              <li key={i.id} className="rounded-full bg-white/12 px-3 py-1 text-[13px] font-semibold">
+                {i.name}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-4 text-[12px] text-white/55">{profile.email}</p>
       </section>
 
-      <Card className="mt-8">
-        <h2 className="font-serif text-2xl">Privacy</h2>
-        <form action={savePrivacy} className="mt-4 flex flex-col gap-4">
-          <label className="flex items-start gap-3">
-            <input type="checkbox" name="showGoing" defaultChecked={data.showGoing} className="mt-1 h-5 w-5 accent-ink" />
-            <span>
-              <span className="block font-medium">Show me as going by default</span>
-              <span className="text-sm text-muted">Others going to the same event can see you.</span>
-            </span>
-          </label>
-          <label className="flex items-start gap-3">
-            <input type="checkbox" name="allowRequests" defaultChecked={data.allowRequests} className="mt-1 h-5 w-5 accent-ink" />
-            <span>
-              <span className="block font-medium">Allow requests to connect</span>
-              <span className="text-sm text-muted">Turn off to stop all new requests.</span>
-            </span>
-          </label>
-          <Button type="submit" variant="ghost">
-            Save privacy
-          </Button>
-        </form>
-      </Card>
+      <h2 className="font-display mt-8 mb-3 text-[20px] font-extrabold">Edit profile</h2>
+      <ProfileForm
+        interests={data.interests}
+        initial={{
+          displayName: profile.display_name ?? "",
+          programme: profile.programme ?? "",
+          batchYear: profile.batch_year,
+          bio: profile.bio ?? "",
+          interestIds: data.interestIds,
+          showGoing: data.showGoing,
+        }}
+        submitLabel="Save profile"
+      />
 
-      <form action={signOut} className="mt-8">
-        <Button type="submit" variant="ghost" className="w-full">
-          Sign out
+      <h2 className="font-display mt-8 mb-3 text-[20px] font-extrabold">Privacy</h2>
+      <form action={savePrivacy} className="flex flex-col gap-4 rounded-[28px] bg-card p-5">
+        <Toggle
+          name="showGoing"
+          defaultChecked={data.showGoing}
+          title="Show me as going by default"
+          description="Others going to the same event can see you."
+        />
+        <div className="h-px bg-line" />
+        <Toggle
+          name="allowRequests"
+          defaultChecked={data.allowRequests}
+          title="Allow requests to connect"
+          description="Turn off to stop all new requests."
+        />
+        <Button type="submit" variant="ghost">
+          Save privacy
         </Button>
       </form>
 
-      <Card className="mt-8 mb-6">
-        <h2 className="font-serif text-2xl">Delete account</h2>
-        <p className="mt-2 text-sm text-soft">This permanently removes your profile, events you host, and messages. It can&apos;t be undone.</p>
+      <div className="mt-8 flex flex-col gap-3">
+        <Link href="/welcome" className="flex items-center justify-between rounded-[24px] bg-card px-5 py-4">
+          <span className="font-bold">How KNOT works</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </Link>
+        <form action={signOut}>
+          <Button type="submit" variant="ghost" className="w-full">
+            Sign out
+          </Button>
+        </form>
+      </div>
+
+      <details open={!!deleteState} className="group mt-8 mb-8 rounded-[28px] bg-card p-5">
+        <summary className="cursor-pointer list-none font-bold text-warn">Delete my account</summary>
+        <p className="mt-3 text-[14px] text-soft">
+          This permanently removes your profile, events you host and your messages. It can&apos;t be undone.
+        </p>
         <form action={deleteAccount} className="mt-4 flex flex-col gap-3">
-          <label htmlFor="confirm" className="text-sm font-medium text-soft">
+          <label htmlFor="confirm" className="text-sm font-semibold">
             Type DELETE to confirm
           </label>
-          <input id="confirm" name="confirm" autoComplete="off" className="h-12 rounded-2xl border border-line bg-paper px-4" />
+          <input id="confirm" name="confirm" autoComplete="off" className="h-12 rounded-[18px] border-[1.5px] border-line bg-paper px-4 focus:border-warn focus:outline-none" />
           {deleteState && DELETE_MESSAGES[deleteState] && (
-            <p role="alert" className="text-sm text-warn">
+            <p role="alert" className="text-sm font-medium text-warn">
               {DELETE_MESSAGES[deleteState]}
             </p>
           )}
@@ -86,7 +110,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             Delete my account
           </Button>
         </form>
-      </Card>
+      </details>
     </main>
   );
 }

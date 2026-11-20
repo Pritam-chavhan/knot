@@ -9,7 +9,7 @@ export function VerifyForm({ email }: { email: string }) {
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
       <input type="hidden" name="email" value={email} />
-      <Field label="Code" htmlFor="code" error={state.error}>
+      <Field label="Sign-in code" htmlFor="code" error={state.error}>
         <input
           id="code"
           name="code"
@@ -21,7 +21,7 @@ export function VerifyForm({ email }: { email: string }) {
           required
           autoFocus
           aria-invalid={!!state.error}
-          className={`${inputClass} text-center font-serif text-3xl tracking-[0.4em]`}
+          className={`${inputClass} font-display text-center text-3xl font-bold tracking-[0.35em]`}
         />
       </Field>
       <Button type="submit" disabled={pending}>

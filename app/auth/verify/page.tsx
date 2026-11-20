@@ -10,29 +10,40 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
   const masked = `${local.slice(0, 2)}${"•".repeat(Math.max(1, local.length - 2))}@${domain}`;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pt-7 pb-8">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pt-6 pb-8">
       <header className="flex items-center gap-3">
-        <Link href="/" aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-full border border-line">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <Link href="/" aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-full bg-card">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 6l-6 6 6 6" />
           </svg>
         </Link>
         <Logo />
       </header>
-      <h1 className="mt-10 font-serif text-[42px] leading-none">
-        Check your <em>inbox</em>.
-      </h1>
-      <p className="mt-3 text-base text-soft">
-        We sent a sign-in email to <span className="font-semibold text-ink">{masked}</span>. Tap the link in it on this
-        phone, or enter the 6-digit code if the email shows one.
-      </p>
-      <div className="mt-8">
-        <VerifyForm email={email} />
+
+      <div className="mt-8 rounded-[30px] bg-marigold-tint p-6">
+        <svg width="64" height="52" viewBox="0 0 64 52" aria-hidden="true">
+          <rect x="2" y="6" width="60" height="44" rx="10" fill="#ffb020" />
+          <path d="M6 12l26 20 26-20" fill="none" stroke="#17142b" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="54" cy="8" r="7" fill="#5a3df0" stroke="#fff2d4" strokeWidth="3" />
+        </svg>
+        <h1 className="font-display mt-4 text-[34px] leading-[1.02] font-extrabold">Check your email</h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-soft">
+          We sent a sign-in link to <span className="font-bold text-ink">{masked}</span>. Open it on this phone and
+          you&apos;re in.
+        </p>
       </div>
-      <p className="mt-6 text-sm text-muted">
-        Didn&apos;t get it? Check spam, or{" "}
-        <Link href="/" className="font-semibold text-ink underline">
-          send a new code
+
+      <div className="mt-6 rounded-[28px] bg-card p-5">
+        <p className="text-[14px] text-soft">Got a 6-digit code instead? Enter it here.</p>
+        <div className="mt-3">
+          <VerifyForm email={email} />
+        </div>
+      </div>
+
+      <p className="mt-6 text-center text-[14px] text-muted">
+        Nothing yet? Check spam, wait a minute, then{" "}
+        <Link href="/" className="font-bold text-thread underline underline-offset-2">
+          try again
         </Link>
         .
       </p>

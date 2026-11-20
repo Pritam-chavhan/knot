@@ -33,7 +33,8 @@ export async function requireMember(options: { allowNotOnboarded?: boolean } = {
     redirect("/?error=no-profile");
   }
   if (profile.status !== "active") redirect("/?error=suspended");
-  if (!profile.onboarded_at && !options.allowNotOnboarded) redirect("/onboarding");
+  // New students see the welcome tour first; it ends on the profile setup.
+  if (!profile.onboarded_at && !options.allowNotOnboarded) redirect("/welcome");
   return { supabase, user, profile };
 }
 

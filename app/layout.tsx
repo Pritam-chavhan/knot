@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { inter, serif } from "./fonts";
+import { display, sans } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,12 +12,12 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f6f3ee",
+  themeColor: "#f2f3f7",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${serif.variable}`}>
+    <html lang="en" className={`${sans.variable} ${display.variable}`}>
       <body className="min-h-dvh">{children}</body>
     </html>
   );

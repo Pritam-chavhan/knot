@@ -7,35 +7,36 @@ const ITEMS = [
   {
     href: "/discover",
     label: "Discover",
-    icon: <><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
+    icon: <><rect x="3.5" y="5" width="17" height="15.5" rx="4" /><path d="M3.5 10h17M8.5 3v4M15.5 3v4" /></>,
   },
   {
     href: "/profile",
     label: "You",
-    icon: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" /></>,
+    icon: <><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20.5c.8-3.9 3.8-6.2 7.5-6.2s6.7 2.3 7.5 6.2" /></>,
   },
 ];
 
 export function BottomNav() {
   const path = usePathname();
-  const items = ITEMS;
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-paper/95 backdrop-blur"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="fixed inset-x-0 bottom-0 z-20 flex justify-center px-5"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)" }}
     >
-      <ul className="mx-auto flex max-w-md">
-        {items.map((it) => {
+      <ul className="flex w-full max-w-[280px] gap-1 rounded-full bg-ink p-1.5 shadow-[0_16px_40px_-12px_rgba(23,20,43,0.55)]">
+        {ITEMS.map((it) => {
           const active = path.startsWith(it.href);
           return (
             <li key={it.href} className="flex-1">
               <Link
                 href={it.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] ${active ? "font-semibold text-ink" : "text-muted"}`}
+                className={`flex h-12 items-center justify-center gap-2 rounded-full text-[14px] font-bold transition-colors ${
+                  active ? "bg-white text-ink" : "text-white/70 hover:text-white"
+                }`}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   {it.icon}
                 </svg>
                 {it.label}
