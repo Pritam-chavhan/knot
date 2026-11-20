@@ -34,6 +34,9 @@ KNOT puts everything happening on campus in one feed, shows how many people are 
 | **Interested or Going** | One tap. Everyone sees the counts; names appear only for students who choose to be visible. |
 | **Host a plan** | A match, a study group, a chai run. Set the number of spots and choose whether anyone can join or people ask first. |
 | **Join requests** | For plans that need the host's OK: students ask with a note, the host lets them in or says no, and the plan shows Full when spots run out. |
+| **Profiles with photos and links** | An optional photo with a crop screen, plus GitHub, Instagram and LinkedIn. Tap anyone's name to see their profile, the interests you share and the plans they're part of. |
+| **My plans** | Everything you're going to, interested in or hosting, sorted by day, with one-tap filters. |
+| **Activity** | Join requests waiting for you (with a badge in the tab bar), replies to your requests and what's starting in the next 24 hours. |
 | **Privacy by default** | College email only. Names hidden until a student opts in. Blocks hide people from each other everywhere. |
 | **Founder dashboard** | Sign-ups, daily and weekly active students, a 30-day chart, people search, suspend and restore, admin roles, event moderation and an audit log. |
 | **Hands-on onboarding** | A six-step tour where new students try each feature with example IITGN plans before they set up a profile. |
@@ -89,13 +92,15 @@ flowchart LR
 - Blocks hide people from each other in profiles, feeds, attendee lists and requests, in both directions.
 - Admin actions are recorded in an audit log, and admins can't suspend or demote themselves.
 - Activity tracking is one row per student per day, used only for active-user counts.
+- Profile photos live in a private bucket. Every upload is re-encoded on the server, which removes location data from phone photos, and photos are only served to signed-in students who can see that profile.
+- Links are stored as usernames and always rebuilt as links to the official site, so a profile can't point anywhere else.
 - Every change is reviewed against these rules. Findings and fixes are covered by tests in `tests/db/`.
 
 ## Quality
 
 | Check | Result |
 |---|---|
-| Unit and database security tests (Vitest, in-process Postgres) | 76 passing |
+| Unit and database security tests (Vitest, in-process Postgres) | 102 passing |
 | Browser tests (Playwright) including accessibility scans (axe) | 7 passing |
 | Lighthouse, landing page on a phone | Performance 99 · Accessibility 100 · Best practices 100 · SEO 100 |
 | Accessibility | WCAG 2.2 AA, 44 px touch targets, keyboard and screen reader friendly |
