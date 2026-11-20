@@ -7,24 +7,46 @@
  *
  * Setup (once):
  *   1. Open https://script.google.com while signed in to your IITGN account.
- *   2. New project, paste this whole file, and put your token below.
- *   3. Run "checkQuery" to see which mails would be sent (only you see the log).
- *   4. Run "setup" and allow access when Google asks.
+ *   2. New project, paste this whole file.
+ *   3. Run "createToken" and allow access when Google asks. It keeps a new
+ *      private token in this project's settings and logs its fingerprint;
+ *      register that fingerprint with KNOT. The token itself never leaves
+ *      your account except to talk to KNOT.
+ *   4. Run "checkQuery" to see which mails would be sent (only you see the log).
+ *   5. Run "setup".
  *
  * To stop: run "stop", or delete the project.
  */
 
 const KNOT_URL = "https://knot-tau.vercel.app/api/ingest/email";
-const KNOT_TOKEN = "PASTE_YOUR_TOKEN_HERE";
 
-// Mail from IITGN mailing lists (Google Groups), not written by you.
-const QUERY = "list:iitgn.ac.in -from:me -in:chats -in:spam -in:trash";
+// Mail that came through an IITGN mailing list (Google Groups) and was sent
+// from an iitgn.ac.in address, not by you. Newsletters, account notices and
+// other personal mail don't match.
+const QUERY = "list:iitgn.ac.in from:iitgn.ac.in -from:me -in:chats -in:spam -in:trash";
 
 const BATCH = 5; // mails per request
 const MAX_PER_RUN = 10; // the rest follow on the next run (fits free AI rate limits)
 const FIRST_LOOK_BACK_DAYS = 3; // so events already announced show up
 
+// Creates a new private token (replacing any old one) and logs only its
+// SHA-256 fingerprint, which is what KNOT stores.
+function createToken() {
+  const token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "");
+  PropertiesService.getScriptProperties().setProperty("token", token);
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, token, Utilities.Charset.UTF_8);
+  const hex = digest.map((b) => ((b + 256) % 256).toString(16).padStart(2, "0")).join("");
+  console.log("New token saved in this project. Fingerprint for KNOT: " + hex);
+}
+
+function token_() {
+  const token = PropertiesService.getScriptProperties().getProperty("token");
+  if (!token) throw new Error('Run "createToken" first.');
+  return token;
+}
+
 function setup() {
+  token_();
   stop();
   ScriptApp.newTrigger("sendNewMail").timeBased().everyMinutes(1).create();
   const props = PropertiesService.getScriptProperties();
@@ -97,7 +119,7 @@ function sendNewMail() {
       const res = UrlFetchApp.fetch(KNOT_URL, {
         method: "post",
         contentType: "application/json",
-        headers: { Authorization: "Bearer " + KNOT_TOKEN },
+        headers: { Authorization: "Bearer " + token_() },
         payload: JSON.stringify(payload),
         muteHttpExceptions: true,
       });

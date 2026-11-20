@@ -184,7 +184,7 @@ export async function processMail(admin: SupabaseClient, inst: Institution, mail
       status: "parsed",
       raw_text: body,
       confidence: Math.max(0, ...results.map((r) => r.confidence ?? 0)) || null,
-      ai_note: results.map((r) => r.note).filter(Boolean).join(" · ").slice(0, 300) || null,
+      ai_note: [...new Set(results.map((r) => r.note).filter(Boolean))].join(" · ").slice(0, 300) || null,
       event_id: lead?.eventId ?? null,
       proposal: lead?.proposal ?? null,
     });

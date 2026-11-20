@@ -123,7 +123,7 @@ flowchart LR
   P -. realtime .-> D["Open Discover screens"]
 ```
 
-Setup: run [`tools/gmail-feed.gs`](tools/gmail-feed.gs) in Google Apps Script with your feed token, and set `AI_PROVIDER`, its API key and `AI_MODEL` on the server. Email addresses and phone numbers are removed from each mail before it is sent to the AI provider.
+Setup: paste [`tools/gmail-feed.gs`](tools/gmail-feed.gs) into Google Apps Script and run `createToken`, which keeps a private token in your Google account and shows only its fingerprint to register with KNOT. Then set `AI_PROVIDER`, its API key and `AI_MODEL` on the server. Email addresses and phone numbers are removed from each mail before it is sent to the AI provider.
 
 ## Tech stack
 
