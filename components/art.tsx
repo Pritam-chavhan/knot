@@ -2,11 +2,10 @@
 // example content only; nothing here reads real data.
 import { Avatar } from "./ui";
 
-export type Tag = "official" | "club" | "student";
+export type Tag = "campus" | "student";
 
 const TAGS: Record<Tag, { label: string; className: string }> = {
-  official: { label: "Official", className: "bg-thread-tint text-thread-deep" },
-  club: { label: "Club", className: "bg-river-tint text-river-deep" },
+  campus: { label: "Campus", className: "bg-thread-tint text-thread-deep" },
   student: { label: "Student-hosted", className: "bg-marigold-tint text-[#6e4300]" },
 };
 
@@ -34,8 +33,8 @@ export function Thread({ className = "", draw = true }: { className?: string; dr
 }
 
 const DAY: { time: string; title: string; where: string; tag: Tag; note: string; faces: string[] }[] = [
-  { time: "1:00 pm", title: "Amalthea speaker session", where: "Academic Block 1", tag: "official", note: "62 going", faces: ["Riya D", "Om B", "Tara J"] },
-  { time: "5:30 pm", title: "Hallabol football practice", where: "Sports complex", tag: "club", note: "Need 2 more", faces: ["Dev M", "Kabir N"] },
+  { time: "1:00 pm", title: "Amalthea speaker session", where: "Academic Block 1", tag: "campus", note: "62 going", faces: ["Riya D", "Om B", "Tara J"] },
+  { time: "5:30 pm", title: "Hallabol football practice", where: "Sports complex", tag: "campus", note: "Need 2 more", faces: ["Dev M", "Kabir N"] },
   { time: "7:15 pm", title: "Sunset walk by the Sabarmati", where: "Meet outside Aibaan", tag: "student", note: "9 going", faces: ["Ananya S", "Lina R", "Neel T"] },
   { time: "11:00 pm", title: "Maggi and board games", where: "Just Chill Cafe, Beauki", tag: "student", note: "14 going", faces: ["Ishita R", "Zoya K", "Aarav M"] },
 ];

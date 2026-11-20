@@ -39,7 +39,7 @@ const SLIDES: Slide[] = [
   },
   {
     title: "Your day, in one feed",
-    body: "Official events, club meetups and plans other students start, sorted by time. The tag tells you who's behind each one.",
+    body: "Institute events, club meetups and plans other students start, sorted by time. The tag tells you whether it's a campus event or a student's plan.",
     art: <DayTimeline compact />,
     bg: "bg-thread-tint",
   },

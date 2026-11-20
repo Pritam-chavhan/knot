@@ -16,23 +16,22 @@ const known: Candidate[] = [
     sender: "robotics@iitgn.ac.in",
   },
 ];
-const verified: Sender = { trusted: true, official: false, address: "robotics@iitgn.ac.in" };
-const official: Sender = { trusted: true, official: true, address: "dosa@iitgn.ac.in" };
-const outsider: Sender = { trusted: false, official: false, address: "dean.students@iitgn-ac.in" };
+const verified: Sender = { trusted: true, address: "robotics@iitgn.ac.in" };
+const otherVerified: Sender = { trusted: true, address: "dosa@iitgn.ac.in" };
+const outsider: Sender = { trusted: false, address: "dean.students@iitgn-ac.in" };
 const base = { title: "Guest talk: AI in healthcare", category: "talk" as const, venue: "AB 1/101", time_known: true };
 const create = (over: object, sender = verified, confidence = 0.92) =>
   decideItem({ kind: "new_event", confidence, event: { ...base, starts_at: "2026-11-21T17:00", ...over } }, known, now, sender);
 
 describe("publishing new events", () => {
-  it("publishes a clear event from a verified IITGN sender, as a club event", () => {
+  it("publishes a clear event from a verified IITGN sender", () => {
     const d = create({ ends_at: "2026-11-21T18:30" });
     expect(d).toMatchObject({ action: "create", publish: true, fields: { title: "Guest talk: AI in healthcare", source_type: "community", venue: "AB 1/101" } });
     if (d.action === "create") expect(d.fields.starts_at).toBe(new Date("2026-11-21T17:00:00+05:30").toISOString());
   });
 
-  it("labels it Official only for senders the founder marked official", () => {
-    expect(create({}, official)).toMatchObject({ publish: true, fields: { source_type: "official" } });
-    expect(create({ source: "official" }, verified)).toMatchObject({ fields: { source_type: "community" } });
+  it("tags every mail event as a Campus event, whatever the mail claims", () => {
+    expect(create({ source: "official" }, otherVerified)).toMatchObject({ publish: true, fields: { source_type: "community" } });
   });
 
   it("never auto-publishes mail from an unverified sender, however confident", () => {
@@ -74,7 +73,7 @@ describe("changes to known events", () => {
       after: { venue: "Jasubhai Auditorium" },
       apply: true,
     });
-    for (const sender of [official, outsider]) {
+    for (const sender of [otherVerified, outsider]) {
       expect(decideItem({ kind: "update_event", ref: "E1", confidence: 1, event: { venue: "Elsewhere hall" } }, known, now, sender)).toMatchObject({ apply: false });
       expect(decideItem({ kind: "cancel_event", ref: "E1", confidence: 1 }, known, now, sender)).toMatchObject({ action: "cancel", apply: false });
     }

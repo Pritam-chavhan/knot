@@ -30,7 +30,7 @@ KNOT puts everything happening on campus in one feed, shows how many people are 
 
 | | |
 |---|---|
-| **One feed for campus** | Official events, club events and plans started by students, grouped by day and filterable by kind. Each card shows the time, place, how many are going and who. |
+| **One feed for campus** | Campus events (institute and clubs) and plans started by students, grouped by day and filterable by kind. Each card shows the time, place, how many are going and who. |
 | **Interested or Going** | One tap. Everyone sees the counts; names appear only for students who choose to be visible. |
 | **Host a plan** | A match, a study group, a chai run. Set the number of spots and choose whether anyone can join or people ask first. |
 | **Join requests** | For plans that need the host's OK: students ask with a note, the host lets them in or says no, and the plan shows Full when spots run out. |
@@ -94,7 +94,7 @@ flowchart LR
 - Admin actions are recorded in an audit log, and admins can't suspend or demote themselves.
 - Activity tracking is one row per student per day, used only for active-user counts.
 - Profile photos live in a private bucket. Every upload is re-encoded on the server, which removes location data from phone photos, and photos are only served to signed-in students who can see that profile.
-- The email feed authenticates with a random token whose SHA-256 is the only thing stored. Mail that isn't about an event is discarded on arrival; only a fingerprint of its Message-ID is kept so it's never processed twice. Mail content is treated as untrusted: the AI's answer is validated field by field, links must be `https://`, and only upcoming institute and club events can be updated or cancelled by a mail.
+- The email feed authenticates with a random token whose SHA-256 is the only thing stored. Mail that isn't about an event is discarded on arrival; only a fingerprint of its Message-ID is kept so it's never processed twice. Mail content is treated as untrusted: the AI's answer is validated field by field, and links must be `https://`. Only mail whose IITGN sender passed Gmail's DMARC check can publish on its own, and a mail can only change or cancel an event the same sender announced; anything else waits for review.
 - Links are stored as usernames and always rebuilt as links to the official site, so a profile can't point anywhere else.
 - Every change is reviewed against these rules. Findings and fixes are covered by tests in `tests/db/`.
 

@@ -120,7 +120,7 @@ export async function createHostedEvent(_prev: ActionState, formData: FormData):
 export async function createOfficialEvent(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { supabase, user } = await requireAdmin();
   const parsed = adminEventSchema.safeParse({
-    source: formData.get("source") ?? "official",
+    source: "community",
     title: formData.get("title") ?? "",
     category: formData.get("category") ?? "",
     startsAt: formData.get("startsAt") ?? "",
@@ -163,7 +163,7 @@ export async function updateEventAsAdmin(_prev: ActionState, formData: FormData)
   const eventId = z.string().uuid().safeParse(formData.get("eventId"));
   if (!eventId.success) return { error: "That event no longer exists. Go back to the inbox.", values: valuesOf(formData) };
   const parsed = adminEditSchema.safeParse({
-    source: formData.get("source") ?? "official",
+    source: "community",
     title: formData.get("title") ?? "",
     category: formData.get("category") ?? "",
     startsAt: formData.get("startsAt") ?? "",

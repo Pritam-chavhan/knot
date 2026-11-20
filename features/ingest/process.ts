@@ -19,7 +19,7 @@ function senderOf(mail: IncomingMail, inst: Institution): Sender {
   const address = senderAddress(mail.from);
   const domain = address?.split("@")[1] ?? "";
   const trusted = mail.verified && !!address && isInstitutionDomain(domain, inst.email_domain);
-  return { trusted, official: trusted && inst.ingest_official_senders.includes(address!), address };
+  return { trusted, address };
 }
 
 async function knownEvents(admin: SupabaseClient, institutionId: string, now: Date): Promise<Candidate[]> {

@@ -69,14 +69,3 @@ export async function resolveProposal(_prev: AdminActionState, fd: FormData): Pr
   revalidatePath("/", "layout");
   return { ok: choice.data === "apply" ? "Change applied." : "Dismissed." };
 }
-
-export async function setOfficialSender(_prev: AdminActionState, fd: FormData): Promise<AdminActionState> {
-  const { supabase } = await requireAdmin();
-  const address = z.string().trim().toLowerCase().max(254).regex(/^[a-z0-9._%+-]+@[a-z0-9.-]+$/).safeParse(fd.get("address"));
-  const official = fd.get("official") === "true";
-  if (!address.success) return { error: "That isn't an email address." };
-  const { error } = await supabase.rpc("admin_set_official_sender", { p_address: address.data, p_official: official });
-  if (error) return { error: friendly(error.message) };
-  revalidatePath("/admin", "layout");
-  return { ok: official ? `${address.data} is now an official sender.` : `${address.data} is no longer official.` };
-}

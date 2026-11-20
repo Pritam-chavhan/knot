@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { OfficialSenderButton, ProposalControls, ReviewControls } from "./controls";
+import { ProposalControls, ReviewControls } from "./controls";
 import { ago } from "./format";
 import { formatClock, dayLabel, whenLabel } from "@/lib/time";
-import { senderAddress } from "@/features/ingest/decide";
 import type { InboxRow, InboxStats, Proposal } from "./queries";
 
 const OUTCOME: Record<string, { label: string; className: string }> = {
@@ -23,9 +22,7 @@ function SenderLine({ r, now }: { r: InboxRow; now: Date }) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-semibold text-muted">
       <span>{senderName(r.from_address)}</span>
-      {r.sender_official ? (
-        <span className="rounded-full bg-thread-tint px-2 py-0.5 text-thread-deep">Official sender</span>
-      ) : r.sender_verified ? (
+      {r.sender_verified ? (
         <span className="rounded-full bg-river-tint px-2 py-0.5 text-river-deep">Verified IITGN</span>
       ) : (
         <span className="rounded-full bg-warn/10 px-2 py-0.5 text-warn">Not verified</span>
@@ -110,9 +107,6 @@ export function InboxView({ rows, stats, saved, now = new Date() }: { rows: Inbo
             <p className="mt-3 text-[12px] text-white/60">
               Last 7 days. Skipped mails aren&apos;t about events and aren&apos;t kept.
               {stats.failed_7d > 0 && ` ${stats.failed_7d} couldn't be read; they're listed below.`}
-              {stats.official_senders === 0
-                ? " No official senders yet, so mail events show as club events until you mark a sender as official."
-                : ` ${stats.official_senders} official ${stats.official_senders === 1 ? "sender" : "senders"}.`}
             </p>
           </>
         )}
@@ -142,7 +136,6 @@ export function InboxView({ rows, stats, saved, now = new Date() }: { rows: Inbo
               </li>
             ))}
             {newEvents.map((r) => {
-              const address = senderAddress(r.from_address ?? "");
               return (
                 <li key={r.id} className="rounded-[28px] bg-card p-4">
                   <SenderLine r={r} now={now} />
@@ -153,11 +146,6 @@ export function InboxView({ rows, stats, saved, now = new Date() }: { rows: Inbo
                   {r.ai_note && <p className="mt-2 rounded-xl bg-paper px-3 py-2 text-[13px] text-soft">{r.ai_note}</p>}
                   {r.confidence != null && <p className="mt-1.5 text-[12px] text-muted">AI confidence {Math.round(r.confidence * 100)}%</p>}
                   <ReviewControls id={r.event_id!} editHref={`/admin/events/${r.event_id}/edit`} />
-                  {r.sender_verified && address && (
-                    <div className="mt-1">
-                      <OfficialSenderButton address={address} official={r.sender_official} />
-                    </div>
-                  )}
                 </li>
               );
             })}

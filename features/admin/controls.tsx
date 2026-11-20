@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { eventAction, resolveProposal, setOfficialSender, setRole, setStatus, type AdminActionState } from "./actions";
+import { eventAction, resolveProposal, setRole, setStatus, type AdminActionState } from "./actions";
 
 function Feedback({ s }: { s: AdminActionState }) {
   if (s.error) return <p role="alert" className="mt-2 text-[13px] font-medium text-warn">{s.error}</p>;
@@ -118,21 +118,6 @@ export function ProposalControls({ id, cancel }: { id: string; cancel: boolean }
           Ignore
         </button>
       </div>
-      <Feedback s={s} />
-    </form>
-  );
-}
-
-export function OfficialSenderButton({ address, official }: { address: string; official: boolean }) {
-  const [s, action, pending] = useActionState<AdminActionState, FormData>(setOfficialSender, {});
-  if (s.ok) return <Feedback s={s} />;
-  return (
-    <form action={action}>
-      <input type="hidden" name="address" value={address} />
-      <input type="hidden" name="official" value={official ? "false" : "true"} />
-      <button type="submit" disabled={pending} className="min-h-11 text-[13px] font-bold text-thread-deep underline-offset-4 hover:underline disabled:opacity-50">
-        {official ? "Stop treating as official" : "Mark sender as official"}
-      </button>
       <Feedback s={s} />
     </form>
   );

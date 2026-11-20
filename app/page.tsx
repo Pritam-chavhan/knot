@@ -95,7 +95,7 @@ export default async function Landing({ searchParams }: { searchParams: Promise<
               Your whole day on campus, on one screen
             </h2>
             <p className="mt-3 max-w-[38ch] text-[16px] leading-relaxed text-soft">
-              No more digging through your inbox. Official events, club meetups and plans other students start, sorted by time,
+              No more digging through your inbox. Institute events, club meetups and plans other students start, sorted by time,
               each with how many people are going.
             </p>
           </div>

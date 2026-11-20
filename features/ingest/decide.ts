@@ -1,7 +1,7 @@
 import { istDayKey, parseIstLocal } from "@/lib/time";
 import type { Candidate, ExtractedItem } from "./extract";
 
-// An event goes live on its own only when all of these hold: the sender is a
+// Every event from mail is a Campus event. It goes live on its own only when all of these hold: the sender is a
 // verified IITGN address, the AI is at least this sure, the time is stated,
 // and any link points to a familiar site. Everything else waits for review.
 export const AUTO_PUBLISH = 0.8;
@@ -34,8 +34,6 @@ const FAMILIAR_HOSTS = [
 export type Sender = {
   // Gmail confirmed the From address (DMARC) and it's on the institution domain.
   trusted: boolean;
-  // The founder marked this address as official.
-  official: boolean;
   // Lowercased address, or null if it couldn't be read.
   address: string | null;
 };
@@ -186,7 +184,7 @@ export function decideItem(item: ExtractedItem, known: Candidate[], now: Date, s
     fields: {
       title,
       category: item.event?.category ?? "other",
-      source_type: sender.trusted && sender.official ? "official" : "community",
+      source_type: "community",
       starts_at: start.toISOString(),
       ends_at: end?.toISOString() ?? null,
       venue: clip(item.event?.venue, 120),

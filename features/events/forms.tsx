@@ -147,24 +147,8 @@ export function AdminEventForm({ eventId, initial }: { eventId?: string; initial
   return (
     <form ref={ref} key={JSON.stringify(v)} action={action} className="flex flex-col gap-4" noValidate>
       {eventId && <input type="hidden" name="eventId" value={eventId} />}
+      <input type="hidden" name="source" value="community" />
       <div className="flex flex-col gap-5 rounded-[28px] bg-card p-5">
-        <fieldset>
-          <legend className="text-sm font-semibold text-ink">Label it as</legend>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {[
-              { id: "official", t: "Official", d: "From the institute" },
-              { id: "community", t: "Club", d: "From a club or society" },
-            ].map((o) => (
-              <label key={o.id} className="flex cursor-pointer gap-3 rounded-[20px] border-[1.5px] border-line p-3.5 has-[:checked]:border-thread has-[:checked]:bg-thread-tint">
-                <input type="radio" name="source" value={o.id} defaultChecked={(v.source ?? "official") === o.id} className="mt-1 h-5 w-5 accent-thread" />
-                <span>
-                  <span className="block font-bold">{o.t}</span>
-                  <span className="text-[13px] text-soft">{o.d}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
         <Field label="Event name" htmlFor="title" error={err("title")}>
           <input id="title" name="title" defaultValue={v.title ?? ""} maxLength={120} required aria-invalid={!!err("title")} className={inputClass} />
         </Field>
