@@ -4,6 +4,9 @@ import { Avatar, Button } from "@/components/ui";
 import { ProfileForm } from "@/features/profile/profile-form";
 import { deleteAccount } from "@/features/profile/actions";
 import { PrivacyForm } from "@/features/profile/privacy-form";
+import { PhotoPicker } from "@/features/profile/photo-picker";
+import { ProfileLinks } from "@/features/profile/profile-links";
+import { avatarSrc } from "@/lib/avatar";
 import { signOut } from "@/features/auth/actions";
 
 const DELETE_MESSAGES: Record<string, string> = {
@@ -16,12 +19,13 @@ type FormData = { interests: { id: number; name: string }[]; interestIds: number
 export function ProfileView({ profile, data, deleteState }: { profile: Profile; data: FormData; deleteState?: string }) {
   const name = profile.display_name ?? "You";
   const myInterests = data.interests.filter((i) => data.interestIds.includes(i.id));
+  const photo = avatarSrc(profile.id, profile.avatar_path);
 
   return (
     <main className="px-5 pt-6">
       <section className="rounded-[30px] bg-ink p-6 text-white">
         <div className="flex items-center gap-4">
-          <Avatar name={name} size={64} index={0} className="ring-ink" />
+          <Avatar name={name} size={64} index={0} src={photo} className="ring-ink" />
           <div className="min-w-0">
             <h1 className="font-display truncate text-[28px] leading-tight font-extrabold">{name}</h1>
             <p className="text-[14px] text-white/70">
@@ -39,10 +43,19 @@ export function ProfileView({ profile, data, deleteState }: { profile: Profile; 
             ))}
           </ul>
         )}
-        <p className="mt-4 text-[12px] text-white/55">{profile.email}</p>
+        <ProfileLinks profile={profile} tone="dark" />
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[12px] text-white/60">{profile.email}</p>
+          <Link href={`/people/${profile.id}`} className="flex min-h-11 items-center text-[13px] font-bold text-white underline-offset-4 hover:underline">
+            See how others see you
+          </Link>
+        </div>
       </section>
 
       <h2 className="font-display mt-8 mb-3 text-[20px] font-extrabold">Edit profile</h2>
+      <div className="mb-4">
+        <PhotoPicker name={name} src={photo} />
+      </div>
       <ProfileForm
         interests={data.interests}
         initial={{
@@ -52,6 +65,9 @@ export function ProfileView({ profile, data, deleteState }: { profile: Profile; 
           bio: profile.bio ?? "",
           interestIds: data.interestIds,
           showGoing: data.showGoing,
+          github: profile.github ?? "",
+          instagram: profile.instagram ?? "",
+          linkedin: profile.linkedin ?? "",
         }}
         submitLabel="Save profile"
       />

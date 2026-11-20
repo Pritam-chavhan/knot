@@ -7,7 +7,7 @@ export function buildCsp({ nonce, supabaseUrl, dev, https = !dev }: { nonce: str
     "default-src": ["'self'"],
     "script-src": ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...(dev ? ["'unsafe-eval'"] : [])],
     "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", "blob:", supabase, "https://*.tile.openstreetmap.org"],
+    "img-src": ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org"],
     "font-src": ["'self'"],
     "connect-src": ["'self'", supabase, supabaseWs, ...(dev ? ["ws:"] : [])],
     "frame-ancestors": ["'none'"],

@@ -5,8 +5,9 @@ import { revalidatePath } from "next/cache";
 import { requireMember } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { onboardingSchema } from "@/features/auth/validation";
+import { LINK_KINDS, parseHandle } from "./links";
 
-export type ProfileField = "displayName" | "programme" | "batchYear" | "bio" | "interests";
+export type ProfileField = "displayName" | "programme" | "batchYear" | "bio" | "interests" | "github" | "instagram" | "linkedin";
 export type ProfileValues = {
   displayName: string;
   programme: string;
@@ -14,6 +15,9 @@ export type ProfileValues = {
   bio: string;
   interests: number[];
   showGoing: boolean;
+  github: string;
+  instagram: string;
+  linkedin: string;
 };
 // On error the submitted values come back, so nothing the student typed is lost.
 export type ProfileFormState = { error?: string; field?: ProfileField; saved?: boolean; values?: ProfileValues };
@@ -28,7 +32,16 @@ export async function saveProfile(_prev: ProfileFormState, formData: FormData): 
     bio: String(formData.get("bio") ?? ""),
     interests: formData.getAll("interests").map(Number).filter(Number.isInteger),
     showGoing: formData.get("showGoing") === "on",
+    github: String(formData.get("github") ?? ""),
+    instagram: String(formData.get("instagram") ?? ""),
+    linkedin: String(formData.get("linkedin") ?? ""),
   };
+  const handles: Record<string, string | null> = {};
+  for (const kind of LINK_KINDS) {
+    const r = parseHandle(kind, values[kind]);
+    if (r.error) return { error: r.error, field: kind, values };
+    handles[kind] = r.value;
+  }
   const parsed = onboardingSchema.safeParse(values);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -44,6 +57,7 @@ export async function saveProfile(_prev: ProfileFormState, formData: FormData): 
       programme: v.programme,
       batch_year: v.batchYear,
       bio: v.bio || null,
+      ...handles,
       onboarded_at: profile.onboarded_at ?? new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -84,6 +98,9 @@ export async function deleteAccount(formData: FormData) {
   const admin = createAdminClient();
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) redirect("/profile?delete=failed");
+  // Then remove their photos from storage.
+  const { data: files } = await admin.storage.from("avatars").list(user.id, { limit: 1000 });
+  if (files?.length) await admin.storage.from("avatars").remove(files.map((f) => `${user.id}/${f.name}`));
   await supabase.auth.signOut();
   redirect("/");
 }

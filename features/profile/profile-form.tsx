@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { saveProfile, type ProfileField, type ProfileFormState } from "./actions";
 import { Button, Field, Toggle, inputClass } from "@/components/ui";
+import { LINKS, LINK_KINDS } from "./links";
 
 type Interest = { id: number; name: string };
 type Initial = {
@@ -12,6 +13,9 @@ type Initial = {
   bio: string;
   interestIds: number[];
   showGoing: boolean;
+  github: string;
+  instagram: string;
+  linkedin: string;
 };
 
 const MAX = 8;
@@ -30,7 +34,11 @@ export function ProfileForm({ interests, initial, submitLabel }: { interests: In
     bio: v?.bio ?? initial.bio,
     interestIds: v?.interests ?? initial.interestIds,
     showGoing: v?.showGoing ?? initial.showGoing,
+    github: v?.github ?? initial.github,
+    instagram: v?.instagram ?? initial.instagram,
+    linkedin: v?.linkedin ?? initial.linkedin,
   };
+  const hasLinks = LINK_KINDS.some((k) => values[k]) || LINK_KINDS.some((k) => state.field === k);
   const [picked, setPicked] = useState<number[]>(values.interestIds);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -136,6 +144,47 @@ export function ProfileForm({ interests, initial, submitLabel }: { interests: In
           })}
         </div>
       </fieldset>
+
+      <details open={hasLinks} className="group rounded-[28px] bg-card p-5">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+          <span>
+            <span className="block font-semibold">Your links</span>
+            <span className="text-[13px] text-muted">Optional. GitHub, Instagram, LinkedIn.</span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-muted transition-transform group-open:rotate-180">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </summary>
+        <div className="mt-4 flex flex-col gap-4">
+          {LINK_KINDS.map((k) => (
+            <Field key={k} label={LINKS[k].label} htmlFor={k} error={err(k)}>
+              <div className={`flex items-stretch overflow-hidden rounded-[18px] border-[1.5px] bg-paper focus-within:border-thread ${err(k) ? "border-warn" : "border-line"}`}>
+                <span className="flex items-center pl-4 text-[14px] text-muted select-none" aria-hidden="true">
+                  {LINKS[k].prefix}
+                </span>
+                <input
+                  id={k}
+                  name={k}
+                  data-field={k}
+                  defaultValue={values[k]}
+                  placeholder="username"
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  inputMode="url"
+                  maxLength={200}
+                  aria-invalid={!!err(k)}
+                  aria-describedby="links-hint"
+                  className="h-12 min-w-0 flex-1 bg-transparent pr-4 pl-0.5 text-[16px] outline-none"
+                />
+              </div>
+            </Field>
+          ))}
+          <p id="links-hint" className="text-[13px] text-muted">
+            Paste your profile link or type the username. Only IITGN students on KNOT can see these.
+          </p>
+        </div>
+      </details>
 
       <div className="rounded-[28px] bg-card p-5">
         <Toggle

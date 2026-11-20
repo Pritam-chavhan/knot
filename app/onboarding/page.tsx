@@ -4,6 +4,8 @@ import { requireMember } from "@/lib/auth";
 import { Logo } from "@/components/ui";
 import { ProfileForm } from "@/features/profile/profile-form";
 import { loadProfileFormData } from "@/features/profile/queries";
+import { PhotoPicker } from "@/features/profile/photo-picker";
+import { avatarSrc } from "@/lib/avatar";
 
 export default async function Onboarding() {
   const { supabase, user, profile } = await requireMember({ allowNotOnboarded: true });
@@ -25,10 +27,11 @@ export default async function Onboarding() {
           A name, your batch and a few interests. It helps the right people find you, and takes about a minute.
         </p>
       </div>
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-4">
+        <PhotoPicker name={profile.display_name ?? profile.email} src={avatarSrc(profile.id, profile.avatar_path)} />
         <ProfileForm
           interests={data.interests}
-          initial={{ displayName: "", programme: "", batchYear: null, bio: "", interestIds: [], showGoing: data.showGoing }}
+          initial={{ displayName: "", programme: "", batchYear: null, bio: "", interestIds: [], showGoing: data.showGoing, github: "", instagram: "", linkedin: "" }}
           submitLabel="Start exploring"
         />
       </div>

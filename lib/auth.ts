@@ -13,6 +13,10 @@ export type Profile = {
   status: "active" | "suspended";
   onboarded_at: string | null;
   is_founder?: boolean;
+  avatar_path: string | null;
+  github: string | null;
+  instagram: string | null;
+  linkedin: string | null;
 };
 
 // Returns the signed-in student's profile, or sends them to the right place.

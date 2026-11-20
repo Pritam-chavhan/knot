@@ -84,7 +84,19 @@ export function Card({ className = "", children }: { className?: string; childre
 
 const AVATAR_COLORS = ["bg-thread text-white", "bg-marigold text-ink", "bg-river-deep text-white", "bg-rose text-ink", "bg-ink text-white"];
 
-export function Avatar({ name, size = 40, index, className = "" }: { name: string; size?: number; index?: number; className?: string }) {
+export function Avatar({
+  name,
+  size = 40,
+  index,
+  src,
+  className = "",
+}: {
+  name: string;
+  size?: number;
+  index?: number;
+  src?: string | null;
+  className?: string;
+}) {
   const initials = name
     .trim()
     .split(/\s+/)
@@ -98,7 +110,12 @@ export function Avatar({ name, size = 40, index, className = "" }: { name: strin
       className={`inline-flex shrink-0 items-center justify-center rounded-full font-display font-bold ring-[3px] ring-card ${AVATAR_COLORS[i % AVATAR_COLORS.length]} ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.38 }}
     >
-      {initials || "?"}
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element -- served by our own auth-checked route
+        <img src={src} alt="" width={size} height={size} loading="lazy" decoding="async" className="h-full w-full rounded-full object-cover" />
+      ) : (
+        initials || "?"
+      )}
     </span>
   );
 }
