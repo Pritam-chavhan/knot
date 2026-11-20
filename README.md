@@ -123,13 +123,13 @@ flowchart LR
   P -. realtime .-> D["Open Discover screens"]
 ```
 
-Setup: run [`tools/gmail-feed.gs`](tools/gmail-feed.gs) in Google Apps Script with your feed token, and set `ANTHROPIC_API_KEY` on the server.
+Setup: run [`tools/gmail-feed.gs`](tools/gmail-feed.gs) in Google Apps Script with your feed token, and set `ANTHROPIC_API_KEY` and `AI_MODEL` on the server.
 
 ## Tech stack
 
 - **App:** Next.js 15 (App Router, Server Components, Server Actions), React 19, TypeScript, Tailwind CSS 4
 - **Data:** Supabase (Postgres, row-level security, Auth)
-- **AI:** Claude (Anthropic API) for reading campus mail
+- **AI:** Anthropic API for reading campus mail
 - **Validation:** Zod
 - **Testing:** Vitest with PGlite for database tests, Playwright with axe-core for browser tests
 - **Hosting:** Vercel

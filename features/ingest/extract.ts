@@ -148,7 +148,8 @@ export async function extractEvents(
   today: string,
 ): Promise<Extraction> {
   const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new ExtractionUnavailable("not_configured");
+  const model = process.env.AI_MODEL;
+  if (!key || !model) throw new ExtractionUnavailable("not_configured");
 
   const fence = randomBytes(6).toString("hex");
   let res: Response;
@@ -157,7 +158,7 @@ export async function extractEvents(
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || "claude-haiku-5-5",
+        model,
         max_tokens: 4000,
         temperature: 0,
         system: systemPrompt(today, fence),
