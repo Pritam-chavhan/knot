@@ -42,7 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 # local tool and editor folders
-.claude/
 .cursor/
 .vscode/
 .idea/
