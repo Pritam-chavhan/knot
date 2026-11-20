@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { Avatar } from "@/components/ui";
+import { avatarSrc } from "@/lib/avatar";
 import {
   cancelEvent,
   requestToJoin,
@@ -164,15 +166,17 @@ export function JoinRequest({ eventId, hostName, status, disabled }: { eventId: 
   );
 }
 
-function RequestRow({ eventId, id, note, person }: { eventId: string; id: string; note: string | null; person: Person }) {
+export function RequestRow({ eventId, id, note, person }: { eventId: string; id: string; note: string | null; person: Person }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(respondToRequest, {});
   const name = person.display_name ?? "A student";
   return (
     <li className="rounded-[20px] bg-paper p-3.5">
       <div className="flex items-center gap-3">
-        <Avatar name={name} size={40} />
+        <Avatar name={name} size={40} src={avatarSrc(person.id, person.avatar_path)} />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-bold">{name}</p>
+          <Link href={`/people/${person.id}`} className="block truncate font-bold underline-offset-4 hover:underline">
+            {name}
+          </Link>
           <p className="truncate text-[13px] text-muted">
             {[person.programme, person.batch_year && `Class of ${person.batch_year}`].filter(Boolean).join(", ")}
           </p>

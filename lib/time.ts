@@ -41,3 +41,12 @@ export function dayLabel(d: Date, now = new Date()): string {
 export function whenLabel(d: Date, now = new Date()): string {
   return `${dayLabel(d, now)}, ${formatClock(d)}`;
 }
+
+// "in 20 min", "in 3 h", "now" — for things starting within a day.
+export function startsIn(d: Date, now = new Date()): string {
+  const mins = Math.round((d.getTime() - now.getTime()) / 60000);
+  if (mins <= 0) return "now";
+  if (mins < 60) return `in ${mins} min`;
+  const hours = Math.round(mins / 60);
+  return `in ${hours} h`;
+}

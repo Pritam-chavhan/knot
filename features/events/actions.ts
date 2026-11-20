@@ -15,7 +15,7 @@ const id = z.string().uuid();
 
 function refresh(eventId: string) {
   revalidatePath(`/events/${eventId}`);
-  revalidatePath("/discover");
+  revalidatePath("/", "layout");
 }
 
 export async function setParticipation(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -113,7 +113,7 @@ export async function createHostedEvent(_prev: ActionState, formData: FormData):
   });
   if (error?.message.includes("rate_limited")) return { error: "You've started 5 plans today. Try again tomorrow.", values: valuesOf(formData) };
   if (error || !eventId) return { error: friendlyError(error, "Your plan didn't save. Try again in a moment."), values: valuesOf(formData) };
-  revalidatePath("/discover");
+  revalidatePath("/", "layout");
   redirect(`/events/${eventId}?new=1`);
 }
 
@@ -152,6 +152,6 @@ export async function createOfficialEvent(_prev: ActionState, formData: FormData
     .select("id")
     .single();
   if (error || !data) return { error: "The event didn't save. Try again in a moment.", values: valuesOf(formData) };
-  revalidatePath("/discover");
+  revalidatePath("/", "layout");
   redirect(`/events/${data.id}?new=1`);
 }

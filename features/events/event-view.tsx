@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TagPill } from "@/components/art";
 import { Avatar } from "@/components/ui";
+import { avatarSrc } from "@/lib/avatar";
 import { dayLabel, formatClock } from "@/lib/time";
 import { SOURCE_TAG, categoryLabel } from "@/features/events/categories";
 import type { loadEvent } from "@/features/events/queries";
@@ -62,12 +63,15 @@ export function EventView({ data, userId, isNew }: { data: EventData; userId: st
           )}
         </dl>
         {e.source_type === "student_hosted" && host ? (
-          <div className="mt-4 flex items-center gap-2.5">
-            <Avatar name={host.display_name ?? "Host"} size={36} />
-            <p className="text-[14px]">
+          <Link href={`/people/${host.id}`} className="-mx-2 mt-3 flex min-h-11 items-center gap-2.5 rounded-2xl px-2 py-1.5 transition-colors hover:bg-paper active:scale-[0.99]">
+            <Avatar name={host.display_name ?? "Host"} size={36} src={avatarSrc(host.id, host.avatar_path)} />
+            <p className="flex-1 text-[14px]">
               Hosted by <span className="font-bold">{isHost ? "you" : host.display_name}</span>
             </p>
-          </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-muted">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </Link>
         ) : (
           e.organiser && <p className="mt-3 text-[14px] text-soft">By {e.organiser}</p>
         )}
@@ -138,14 +142,16 @@ export function EventView({ data, userId, isNew }: { data: EventData; userId: st
         ) : (
           <ul className="mt-3 flex flex-col divide-y divide-line">
             {goingPeople.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 py-2.5">
-                <Avatar name={p.display_name ?? "Student"} size={40} />
-                <span className="min-w-0">
+              <li key={p.id}>
+                <Link href={`/people/${p.id}`} className="-mx-2 flex items-center gap-3 rounded-2xl px-2 py-2.5 transition-colors hover:bg-paper active:scale-[0.99]">
+                <Avatar name={p.display_name ?? "Student"} size={40} src={avatarSrc(p.id, p.avatar_path)} />
+                <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold">{p.id === user.id ? "You" : p.display_name}</span>
                   <span className="block truncate text-[13px] text-muted">
                     {[p.programme, p.batch_year && `Class of ${p.batch_year}`].filter(Boolean).join(", ")}
                   </span>
                 </span>
+                </Link>
               </li>
             ))}
           </ul>

@@ -44,7 +44,7 @@ export type EventDetail = {
   host_id: string | null;
 };
 
-export type Person = { id: string; display_name: string | null; programme: string | null; batch_year: number | null };
+export type Person = { id: string; display_name: string | null; programme: string | null; batch_year: number | null; avatar_path: string | null };
 
 export async function loadEvent(supabase: SupabaseClient, eventId: string, userId: string) {
   const { data: event } = await supabase
@@ -60,14 +60,14 @@ export async function loadEvent(supabase: SupabaseClient, eventId: string, userI
     supabase.from("event_participation").select("state, is_visible").eq("event_id", eventId).eq("profile_id", userId).maybeSingle(),
     supabase
       .from("event_participation")
-      .select("profile_id, profiles!inner(id, display_name, programme, batch_year)")
+      .select("profile_id, profiles!inner(id, display_name, programme, batch_year, avatar_path)")
       .eq("event_id", eventId)
       .eq("state", "going")
       .eq("is_visible", true)
       .order("created_at")
       .limit(100),
     event.host_id
-      ? supabase.from("profiles").select("id, display_name, programme, batch_year").eq("id", event.host_id).maybeSingle<Person>()
+      ? supabase.from("profiles").select("id, display_name, programme, batch_year, avatar_path").eq("id", event.host_id).maybeSingle<Person>()
       : Promise.resolve({ data: null }),
     event.join_mode === "request" && !isHost
       ? supabase.from("event_join_requests").select("status").eq("event_id", eventId).eq("profile_id", userId).maybeSingle()
@@ -75,7 +75,7 @@ export async function loadEvent(supabase: SupabaseClient, eventId: string, userI
     isHost && event.join_mode === "request"
       ? supabase
           .from("event_join_requests")
-          .select("id, note, created_at, profiles!inner(id, display_name, programme, batch_year)")
+          .select("id, note, created_at, profiles!inner(id, display_name, programme, batch_year, avatar_path)")
           .eq("event_id", eventId)
           .eq("status", "pending")
           .order("created_at")

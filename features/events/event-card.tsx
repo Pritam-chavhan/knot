@@ -6,12 +6,12 @@ import { SOURCE_TAG } from "./categories";
 import type { FeedEvent } from "./queries";
 
 function MyState({ e }: { e: FeedEvent }) {
-  if (e.status === "cancelled") return <span className="rounded-full bg-warn px-2.5 py-1 text-[12px] font-bold text-white">Cancelled</span>;
+  if (e.status === "cancelled") return <span className="whitespace-nowrap rounded-full bg-warn px-2.5 py-1 text-[12px] font-bold text-white">Cancelled</span>;
   if (e.my_state === "going")
-    return <span className="rounded-full bg-marigold px-2.5 py-1 text-[12px] font-bold text-ink">You&apos;re going</span>;
+    return <span className="whitespace-nowrap rounded-full bg-marigold px-2.5 py-1 text-[12px] font-bold text-ink">You&apos;re going</span>;
   if (e.my_state === "interested")
-    return <span className="rounded-full bg-thread-tint px-2.5 py-1 text-[12px] font-bold text-thread-deep">Interested</span>;
-  if (e.status === "full") return <span className="rounded-full bg-paper px-2.5 py-1 text-[12px] font-bold text-soft">Full</span>;
+    return <span className="whitespace-nowrap rounded-full bg-thread-tint px-2.5 py-1 text-[12px] font-bold text-thread-deep">Interested</span>;
+  if (e.status === "full") return <span className="whitespace-nowrap rounded-full bg-paper px-2.5 py-1 text-[12px] font-bold text-soft">Full</span>;
   return null;
 }
 
@@ -49,7 +49,7 @@ export function EventCard({ e }: { e: FeedEvent }) {
             <span className="text-river-deep"> · {spots === 1 ? "1 spot left" : `${spots} spots left`}</span>
           )}
         </span>
-        <span className="ml-auto">
+        <span className="ml-auto shrink-0">
           <MyState e={e} />
         </span>
       </div>

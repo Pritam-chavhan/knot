@@ -3,53 +3,119 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const ITEMS = [
+type Tab = { href: string; label: string; match: (p: string) => boolean; icon: React.ReactNode };
+
+const TABS: Tab[] = [
   {
     href: "/discover",
     label: "Discover",
-    icon: <><rect x="3.5" y="5" width="17" height="15.5" rx="4" /><path d="M3.5 10h17M8.5 3v4M15.5 3v4" /></>,
+    match: (p) => p.startsWith("/discover") || p.startsWith("/events"),
+    icon: <><circle cx="12" cy="12" r="8.5" /><path d="M15.2 8.8l-1.9 4.5-4.5 1.9 1.9-4.5z" /></>,
   },
   {
-    href: "/host/new",
-    label: "Host",
-    icon: <><circle cx="12" cy="12" r="8.5" /><path d="M12 8.5v7M8.5 12h7" /></>,
+    href: "/plans",
+    label: "Plans",
+    match: (p) => p.startsWith("/plans"),
+    icon: <><rect x="3.5" y="5" width="17" height="15.5" rx="4" /><path d="M3.5 10h17M8.5 3v4M15.5 3v4M8 14.5l2 2 4-4" /></>,
+  },
+  {
+    href: "/activity",
+    label: "Activity",
+    match: (p) => p.startsWith("/activity"),
+    icon: <><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" /><path d="M10 20.5a2.2 2.2 0 0 0 4 0" /></>,
   },
   {
     href: "/profile",
     label: "You",
+    match: (p) => p.startsWith("/profile") || p.startsWith("/admin"),
     icon: <><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20.5c.8-3.9 3.8-6.2 7.5-6.2s6.7 2.3 7.5 6.2" /></>,
   },
 ];
 
-export function BottomNav() {
-  const path = usePathname();
+// Slots left to right; the Host button sits in the middle.
+const SLOTS = [TABS[0], TABS[1], null, TABS[2], TABS[3]] as const;
+
+function Icon({ children }: { children: React.ReactNode }) {
+  return (
+    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+
+export function BottomNav({ activityCount = 0 }: { activityCount?: number }) {
+  return <BottomNavView path={usePathname()} activityCount={activityCount} />;
+}
+
+export function BottomNavView({ path, activityCount = 0 }: { path: string; activityCount?: number }) {
+  const hosting = path.startsWith("/host");
+  const active = SLOTS.findIndex((t) => t?.match(path));
+
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-20 flex justify-center px-5"
-      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)" }}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center px-3"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
     >
-      <ul className="flex w-full max-w-[340px] gap-1 rounded-full bg-ink p-1.5 shadow-[0_16px_40px_-12px_rgba(23,20,43,0.55)]">
-        {ITEMS.map((it) => {
-          const active = path.startsWith(it.href) || (it.href === "/discover" && path.startsWith("/events"));
-          return (
-            <li key={it.href} className="flex-1">
-              <Link
-                href={it.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex h-12 items-center justify-center gap-2 rounded-full text-[14px] font-bold transition-colors ${
-                  active ? "bg-white text-ink" : "text-white/70 hover:text-white"
-                }`}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  {it.icon}
-                </svg>
-                {it.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="pointer-events-auto relative w-full max-w-[420px] rounded-[30px] bg-ink px-1.5 pt-1.5 pb-1.5 shadow-[0_18px_44px_-14px_rgba(23,20,43,0.6)]">
+        {/* Highlight that slides to the active tab. */}
+        <span
+          aria-hidden="true"
+          className="absolute top-1.5 bottom-1.5 left-1.5 rounded-[24px] bg-white/[0.11] transition-[transform,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+          style={{
+            width: "calc((100% - 12px) / 5)",
+            transform: `translateX(${Math.max(active, 0) * 100}%)`,
+            opacity: active < 0 ? 0 : 1,
+          }}
+        />
+        <ul className="relative grid grid-cols-5">
+          {SLOTS.map((t, i) =>
+            t === null ? (
+              <li key="host" className="flex justify-center">
+                <Link
+                  href="/host/new"
+                  aria-current={hosting ? "page" : undefined}
+                  className="group -mt-6 flex flex-col items-center gap-1 rounded-full focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-marigold"
+                >
+                  <span
+                    className={`flex h-[58px] w-[58px] items-center justify-center rounded-full bg-marigold text-ink shadow-[0_10px_24px_-8px_rgba(255,176,32,0.85)] ring-[5px] ring-ink transition-transform duration-200 group-active:scale-90 motion-reduce:transition-none ${
+                      hosting ? "rotate-45" : "group-hover:-translate-y-0.5"
+                    }`}
+                  >
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </span>
+                  <span className="text-[11.5px] leading-none font-bold text-white">Host</span>
+                </Link>
+              </li>
+            ) : (
+              <li key={t.href}>
+                <Link
+                  href={t.href}
+                  aria-current={i === active ? "page" : undefined}
+                  className={`group relative flex h-[56px] flex-col items-center justify-center gap-1 rounded-[24px] transition-colors focus-visible:outline-3 focus-visible:-outline-offset-2 focus-visible:outline-marigold ${
+                    i === active ? "text-white" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <span className="relative transition-transform duration-200 group-active:scale-90 motion-reduce:transition-none">
+                    <Icon>{t.icon}</Icon>
+                    {t.href === "/activity" && activityCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose px-1 text-[11px] leading-none font-extrabold text-ink ring-2 ring-ink">
+                        {activityCount > 9 ? "9+" : activityCount}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[11.5px] leading-none font-bold">{t.label}</span>
+                  {t.href === "/activity" && activityCount > 0 && (
+                    <span className="sr-only">, {activityCount === 1 ? "1 request to review" : `${activityCount} requests to review`}</span>
+                  )}
+                </Link>
+              </li>
+            ),
+          )}
+        </ul>
+      </div>
     </nav>
   );
 }

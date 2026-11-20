@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Profile } from "@/lib/auth";
 import { DayTimeline } from "@/components/art";
 import { Avatar, ButtonLink } from "@/components/ui";
+import { avatarSrc } from "@/lib/avatar";
 import { dayLabel, istDayKey } from "@/lib/time";
 import { CATEGORIES } from "@/features/events/categories";
 import { EventCard } from "@/features/events/event-card";
@@ -22,7 +23,7 @@ export function DiscoverView({
   category,
   now = new Date(),
 }: {
-  profile: Pick<Profile, "display_name" | "role">;
+  profile: Pick<Profile, "id" | "display_name" | "role" | "avatar_path">;
   events: FeedEvent[];
   category: string | null;
   now?: Date;
@@ -54,7 +55,7 @@ export function DiscoverView({
         </div>
         <Link href="/profile" className="shrink-0 rounded-full">
           <span className="sr-only">Your profile</span>
-          <Avatar name={name} size={46} />
+          <Avatar name={name} size={46} src={avatarSrc(profile.id, profile.avatar_path)} />
         </Link>
       </header>
 
