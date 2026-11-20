@@ -55,5 +55,28 @@ export async function eventAction(_prev: AdminActionState, fd: FormData): Promis
   revalidatePath("/admin", "layout");
   revalidatePath("/discover");
   revalidatePath(`/events/${event.data}`);
-  return { ok: { cancel_event: "Cancelled.", hide_event: "Hidden from students.", restore_event: "Restored." }[action.data] };
+  revalidatePath("/", "layout");
+  return { ok: { cancel_event: "Cancelled.", hide_event: "Hidden from students.", restore_event: "Live on Discover." }[action.data] };
+}
+
+export async function resolveProposal(_prev: AdminActionState, fd: FormData): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin();
+  const announcement = id.safeParse(fd.get("announcementId"));
+  const choice = z.enum(["apply", "dismiss"]).safeParse(fd.get("choice"));
+  if (!announcement.success || !choice.success) return { error: "That didn't work. Reload and try again." };
+  const { error } = await supabase.rpc("admin_resolve_proposal", { p_announcement: announcement.data, p_apply: choice.data === "apply" });
+  if (error) return { error: error.message.includes("not_found") ? "Already handled." : friendly(error.message) };
+  revalidatePath("/", "layout");
+  return { ok: choice.data === "apply" ? "Change applied." : "Dismissed." };
+}
+
+export async function setOfficialSender(_prev: AdminActionState, fd: FormData): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin();
+  const address = z.string().trim().toLowerCase().max(254).regex(/^[a-z0-9._%+-]+@[a-z0-9.-]+$/).safeParse(fd.get("address"));
+  const official = fd.get("official") === "true";
+  if (!address.success) return { error: "That isn't an email address." };
+  const { error } = await supabase.rpc("admin_set_official_sender", { p_address: address.data, p_official: official });
+  if (error) return { error: friendly(error.message) };
+  revalidatePath("/admin", "layout");
+  return { ok: official ? `${address.data} is now an official sender.` : `${address.data} is no longer official.` };
 }

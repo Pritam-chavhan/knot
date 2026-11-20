@@ -84,3 +84,45 @@ export async function loadLog(supabase: SupabaseClient) {
   if (error) throw new Error("log_failed");
   return (data ?? []) as LogRow[];
 }
+
+export type InboxRow = {
+  id: string;
+  received_at: string;
+  from_address: string | null;
+  subject: string | null;
+  outcome: "published" | "needs_review" | "updated" | "cancelled" | "error" | "pending";
+  confidence: number | null;
+  ai_note: string | null;
+  event_id: string | null;
+  event_title: string | null;
+  event_starts_at: string | null;
+  event_review_status: string | null;
+  event_status: string | null;
+  sender_verified: boolean | null;
+  sender_official: boolean;
+  proposal: Proposal | null;
+};
+export type Proposal = {
+  kind: "update" | "cancel";
+  before: { starts_at?: string; ends_at?: string | null; venue?: string };
+  after: { starts_at?: string; ends_at?: string | null; venue?: string };
+  resolved?: boolean;
+  applied?: boolean;
+  auto?: boolean;
+};
+export type InboxStats = {
+  connected: boolean;
+  official_senders: number;
+  failed_7d: number;
+  last_mail_at: string | null;
+  mails_7d: number;
+  published_7d: number;
+  updated_7d: number;
+  skipped_7d: number;
+  to_review: number;
+};
+
+export async function loadInbox(supabase: SupabaseClient) {
+  const [rows, stats] = await Promise.all([supabase.rpc("admin_inbox", { p_limit: 60 }), supabase.rpc("admin_inbox_stats")]);
+  return { rows: (rows.data ?? []) as InboxRow[], stats: (stats.data ?? null) as InboxStats | null };
+}

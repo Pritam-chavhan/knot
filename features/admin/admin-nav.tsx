@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/admin", label: "Overview" },
+  { href: "/admin/inbox", label: "Inbox" },
   { href: "/admin/people", label: "People" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/log", label: "Log" },
@@ -16,7 +17,7 @@ export function AdminNav() {
     <nav aria-label="Dashboard sections" className="-mx-5 overflow-x-auto px-5">
       <ul className="flex gap-1 rounded-full bg-card p-1">
         {TABS.map((t) => {
-          const active = t.href === "/admin" ? path === "/admin" : path.startsWith(t.href) && path !== "/admin/events/new";
+          const active = t.href === "/admin" ? path === "/admin" : path.startsWith(t.href) && path !== "/admin/events/new" && !(t.href === "/admin/events" && path.endsWith("/edit"));
           return (
             <li key={t.href} className="flex-1">
               <Link

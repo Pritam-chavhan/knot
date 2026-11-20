@@ -3,6 +3,7 @@ import type { Profile } from "@/lib/auth";
 import { DayTimeline } from "@/components/art";
 import { Avatar, ButtonLink } from "@/components/ui";
 import { avatarSrc } from "@/lib/avatar";
+import { LiveUpdates } from "@/components/live-updates";
 import { dayLabel, istDayKey } from "@/lib/time";
 import { CATEGORIES } from "@/features/events/categories";
 import { EventCard } from "@/features/events/event-card";
@@ -41,6 +42,7 @@ export function DiscoverView({
 
   return (
     <main className="px-5 pt-6">
+      <LiveUpdates knownIds={events.map((e) => e.id)} />
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[13px] font-semibold text-muted">{today}</p>

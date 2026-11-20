@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin, requireMember } from "@/lib/auth";
-import { adminEventSchema, endsAtFrom, hostEventSchema } from "./validation";
+import { adminEditSchema, adminEventSchema, endsAtFrom, hostEventSchema } from "./validation";
 import { friendlyError } from "./errors";
 
 export type ActionState = { error?: string; ok?: string; field?: string; values?: Record<string, string> };
@@ -154,4 +154,48 @@ export async function createOfficialEvent(_prev: ActionState, formData: FormData
   if (error || !data) return { error: "The event didn't save. Try again in a moment.", values: valuesOf(formData) };
   revalidatePath("/", "layout");
   redirect(`/events/${data.id}?new=1`);
+}
+
+// Saves an admin's edits to an institute or club event (usually one found in
+// campus mail) and publishes it, in one logged database step.
+export async function updateEventAsAdmin(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { supabase } = await requireAdmin();
+  const eventId = z.string().uuid().safeParse(formData.get("eventId"));
+  if (!eventId.success) return { error: "That event no longer exists. Go back to the inbox.", values: valuesOf(formData) };
+  const parsed = adminEditSchema.safeParse({
+    source: formData.get("source") ?? "official",
+    title: formData.get("title") ?? "",
+    category: formData.get("category") ?? "",
+    startsAt: formData.get("startsAt") ?? "",
+    durationMinutes: formData.get("durationMinutes") || undefined,
+    venue: formData.get("venue") ?? "",
+    organiser: formData.get("organiser") ?? "",
+    description: formData.get("description") ?? "",
+    registrationUrl: formData.get("registrationUrl") ?? "",
+  });
+  if (!parsed.success) return fieldError(parsed.error.issues, formData);
+  const v = parsed.data;
+
+  const { error } = await supabase.rpc("admin_save_event", {
+    p_event: eventId.data,
+    p_source: v.source,
+    p_title: v.title,
+    p_category: v.category,
+    p_starts: v.startsAt.toISOString(),
+    p_ends: endsAtFrom(v.startsAt, v.durationMinutes)?.toISOString() ?? null,
+    p_venue: v.venue,
+    p_organiser: v.organiser,
+    p_description: v.description,
+    p_url: v.registrationUrl,
+  });
+  if (error) {
+    const msg = error.message.includes("not_editable")
+      ? "This event was cancelled or discarded, so it can't be edited."
+      : error.message.includes("not_found")
+        ? "That event no longer exists. Go back to the inbox."
+        : "The event didn't save. Try again in a moment.";
+    return { error: msg, values: valuesOf(formData) };
+  }
+  revalidatePath("/", "layout");
+  redirect("/admin/inbox?saved=1");
 }

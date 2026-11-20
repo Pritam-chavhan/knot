@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { eventAction, setRole, setStatus, type AdminActionState } from "./actions";
+import { eventAction, resolveProposal, setOfficialSender, setRole, setStatus, type AdminActionState } from "./actions";
 
 function Feedback({ s }: { s: AdminActionState }) {
   if (s.error) return <p role="alert" className="mt-2 text-[13px] font-medium text-warn">{s.error}</p>;
@@ -77,6 +77,62 @@ export function EventControls({ id, status, review }: { id: string; status: stri
           </button>
         )}
       </div>
+      <Feedback s={s} />
+    </form>
+  );
+}
+
+export function ReviewControls({ id, editHref }: { id: string; editHref: string }) {
+  const [s, action, pending] = useActionState<AdminActionState, FormData>(eventAction, {});
+  if (s.ok) return <Feedback s={s} />;
+  return (
+    <form action={action} className="mt-3">
+      <input type="hidden" name="eventId" value={id} />
+      <div className="grid grid-cols-3 gap-2">
+        <button type="submit" name="action" value="restore_event" disabled={pending} className={`${btn} bg-thread text-white transition-transform active:scale-95`}>
+          Publish
+        </button>
+        <a href={editHref} className={`${btn} flex items-center justify-center border-[1.5px] border-line bg-card transition-transform active:scale-95`}>
+          Edit
+        </a>
+        <button type="submit" name="action" value="hide_event" disabled={pending} className={`${btn} border-[1.5px] border-warn/30 text-warn transition-transform active:scale-95`}>
+          Discard
+        </button>
+      </div>
+      <Feedback s={s} />
+    </form>
+  );
+}
+
+export function ProposalControls({ id, cancel }: { id: string; cancel: boolean }) {
+  const [s, action, pending] = useActionState<AdminActionState, FormData>(resolveProposal, {});
+  if (s.ok) return <Feedback s={s} />;
+  return (
+    <form action={action} className="mt-3">
+      <input type="hidden" name="announcementId" value={id} />
+      <div className="grid grid-cols-2 gap-2">
+        <button type="submit" name="choice" value="apply" disabled={pending} className={`${btn} ${cancel ? "bg-warn" : "bg-thread"} text-white transition-transform active:scale-95`}>
+          {cancel ? "Cancel the event" : "Apply change"}
+        </button>
+        <button type="submit" name="choice" value="dismiss" disabled={pending} className={`${btn} border-[1.5px] border-line bg-card transition-transform active:scale-95`}>
+          Ignore
+        </button>
+      </div>
+      <Feedback s={s} />
+    </form>
+  );
+}
+
+export function OfficialSenderButton({ address, official }: { address: string; official: boolean }) {
+  const [s, action, pending] = useActionState<AdminActionState, FormData>(setOfficialSender, {});
+  if (s.ok) return <Feedback s={s} />;
+  return (
+    <form action={action}>
+      <input type="hidden" name="address" value={address} />
+      <input type="hidden" name="official" value={official ? "false" : "true"} />
+      <button type="submit" disabled={pending} className="min-h-11 text-[13px] font-bold text-thread-deep underline-offset-4 hover:underline disabled:opacity-50">
+        {official ? "Stop treating as official" : "Mark sender as official"}
+      </button>
       <Feedback s={s} />
     </form>
   );

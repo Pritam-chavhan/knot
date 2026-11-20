@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { Button, Field, inputClass } from "@/components/ui";
 import { toIstLocalInput } from "@/lib/time";
 import { CATEGORIES } from "./categories";
-import { createHostedEvent, createOfficialEvent, type ActionState } from "./actions";
+import { createHostedEvent, createOfficialEvent, updateEventAsAdmin, type ActionState } from "./actions";
 
 const DURATIONS = [
   { v: "", l: "Not sure" },
@@ -56,10 +56,16 @@ function WhenFields({ v, err }: { v: Record<string, string>; err: (f: string) =>
   return (
     <div className="flex flex-col gap-5">
       <Field label="When" htmlFor="startsAt" error={err("startsAt")}>
-        <input id="startsAt" name="startsAt" type="datetime-local" min={min} defaultValue={v.startsAt ?? ""} required aria-invalid={!!err("startsAt")} className={inputClass} />
+        <input id="startsAt" name="startsAt" type="datetime-local" min={v.startsAt && v.startsAt < min ? undefined : min} defaultValue={v.startsAt ?? ""} required aria-invalid={!!err("startsAt")} className={inputClass} />
       </Field>
       <Field label="How long, roughly" htmlFor="durationMinutes">
         <select id="durationMinutes" name="durationMinutes" defaultValue={v.durationMinutes ?? "60"} className={inputClass}>
+          {v.durationMinutes && !DURATIONS.some((d) => d.v === v.durationMinutes) && (
+            <option value={v.durationMinutes}>
+              {Math.floor(Number(v.durationMinutes) / 60) ? `${Math.floor(Number(v.durationMinutes) / 60)} h ` : ""}
+              {Number(v.durationMinutes) % 60 ? `${Number(v.durationMinutes) % 60} min` : ""} (as announced)
+            </option>
+          )}
           {DURATIONS.map((d) => (
             <option key={d.v} value={d.v}>
               {d.l}
@@ -132,14 +138,15 @@ export function HostForm() {
   );
 }
 
-export function AdminEventForm() {
-  const [state, action, pending] = useActionState<ActionState, FormData>(createOfficialEvent, {});
+export function AdminEventForm({ eventId, initial }: { eventId?: string; initial?: Record<string, string> } = {}) {
+  const [state, action, pending] = useActionState<ActionState, FormData>(eventId ? updateEventAsAdmin : createOfficialEvent, {});
   const ref = useFocusError(state);
-  const v = state.values ?? {};
+  const v = state.values ?? initial ?? {};
   const err = (f: string) => (state.field === f ? state.error : undefined);
 
   return (
     <form ref={ref} key={JSON.stringify(v)} action={action} className="flex flex-col gap-4" noValidate>
+      {eventId && <input type="hidden" name="eventId" value={eventId} />}
       <div className="flex flex-col gap-5 rounded-[28px] bg-card p-5">
         <fieldset>
           <legend className="text-sm font-semibold text-ink">Label it as</legend>
@@ -182,7 +189,7 @@ export function AdminEventForm() {
         </p>
       )}
       <Button type="submit" disabled={pending} className="h-14">
-        {pending ? "Adding…" : "Add to the feed"}
+        {eventId ? (pending ? "Saving…" : "Save and publish") : pending ? "Adding…" : "Add to the feed"}
       </Button>
     </form>
   );

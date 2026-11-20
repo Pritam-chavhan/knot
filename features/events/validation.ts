@@ -57,6 +57,22 @@ export const adminEventSchema = z.object({
     .refine((v) => v === null || /^https:\/\/[^\s]+$/.test(v), "Use a full link starting with https://"),
 });
 
+// Admins editing an existing event can also fix one that has already started
+// today or is up to a year away.
+const editStartsAt = z
+  .string()
+  .transform((v, ctx) => {
+    const d = parseIstLocal(v);
+    if (!d) {
+      ctx.addIssue({ code: "custom", message: "Pick a date and time." });
+      return z.NEVER;
+    }
+    return d;
+  })
+  .refine((d) => d.getTime() > Date.now() - 24 * 3600_000, "That's more than a day ago.")
+  .refine((d) => d.getTime() < Date.now() + 400 * 86_400_000, "Pick a date within the next year.");
+export const adminEditSchema = adminEventSchema.extend({ startsAt: editStartsAt });
+
 export type HostEventInput = z.output<typeof hostEventSchema>;
 export type AdminEventInput = z.output<typeof adminEventSchema>;
 
