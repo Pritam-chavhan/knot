@@ -1,7 +1,6 @@
-import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { institutionForScript } from "@/lib/script-auth";
 import { ExtractionUnavailable } from "@/features/ingest/extract";
 import { processMail, type Institution, type Outcome } from "@/features/ingest/process";
 
@@ -40,16 +39,8 @@ const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 
 async function institutionFor(request: Request) {
-  const token = request.headers.get("authorization")?.match(/^Bearer ([A-Za-z0-9_-]{40,128})$/)?.[1];
-  if (!token) return null;
-  const hash = createHash("sha256").update(token).digest("hex");
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("institutions")
-    .select("id, email_domain, ingest_official_senders")
-    .eq("ingest_token_hash", hash)
-    .maybeSingle<Institution>();
-  return data ? { admin, inst: data } : null;
+  const auth = await institutionForScript(request);
+  return auth ? { admin: auth.admin, inst: { ...auth.inst, ingest_official_senders: auth.inst.ingest_official_senders ?? [] } as Institution } : null;
 }
 
 export async function POST(request: Request) {

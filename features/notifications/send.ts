@@ -140,3 +140,14 @@ export function alertHosted(eventId: string, name: string, title: string) {
     }),
   );
 }
+
+export function alertStillStuck(profileId: string, email: string, stage: string) {
+  after(() =>
+    notifyFounders(`founder-stuck:${profileId}:${stage}`, {
+      title: "Still stuck after 2 help emails",
+      body: `${email} ${stage === "verified" ? "hasn't finished their profile" : "hasn't signed in"}. Worth a personal message.`,
+      url: "/admin/signups?stage=stuck",
+      tag: "founder-signups",
+    }),
+  );
+}

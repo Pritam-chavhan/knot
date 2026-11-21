@@ -7,7 +7,7 @@ import { join } from "node:path";
 // "authenticated" role that row-level security policies target.
 const SUPABASE_STUB = `
 create schema if not exists auth;
-create table auth.users (id uuid primary key, email text, created_at timestamptz default now(), email_confirmed_at timestamptz, last_sign_in_at timestamptz);
+create table auth.users (id uuid primary key, email text, created_at timestamptz default now(), email_confirmed_at timestamptz, last_sign_in_at timestamptz, confirmation_sent_at timestamptz);
 create or replace function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
 $$;

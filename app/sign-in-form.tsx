@@ -6,9 +6,13 @@ import { Button } from "@/components/ui";
 
 const DOMAIN = process.env.NEXT_PUBLIC_INSTITUTION_DOMAIN ?? "iitgn.ac.in";
 
-export function SignInForm() {
+export function SignInForm({ initialEmail }: { initialEmail?: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(sendCode, {});
-  const [value, setValue] = useState(state.email?.split("@")[0] ?? "");
+  const [value, setValue] = useState(() => {
+    const e = state.email ?? initialEmail ?? "";
+    // Show just the name part for the usual domain; a subdomain address stays whole.
+    return e.toLowerCase().endsWith(`@${DOMAIN}`) ? e.split("@")[0] : e;
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const typedFullEmail = value.includes("@");
 

@@ -16,9 +16,18 @@
  *   5. Run "setup".
  *
  * To stop: run "stop", or delete the project.
+ *
+ * Sign-up helper (optional, same project):
+ *   Run "setupHelper" once. Every 10 minutes it asks KNOT who is stuck
+ *   signing up and emails them help from this account, as "Pritam from
+ *   KNOT". KNOT decides who and when: at most two emails per student, never
+ *   after they've joined. To check without sending, run "previewHelper".
+ *   To stop it, run "stopHelper".
  */
 
 const KNOT_URL = "https://knot-tau.vercel.app/api/ingest/email";
+const HELPER_URL = "https://knot-tau.vercel.app/api/signup-help";
+const HELPER_NAME = "Pritam from KNOT";
 
 // Mail that came through an IITGN mailing list (Google Groups) and was sent
 // from an iitgn.ac.in address, not by you. Newsletters, account notices and
@@ -57,8 +66,73 @@ function setup() {
 }
 
 function stop() {
-  ScriptApp.getProjectTriggers().forEach((t) => ScriptApp.deleteTrigger(t));
+  deleteTriggers_("sendNewMail");
   console.log("KNOT feed is off.");
+}
+
+function deleteTriggers_(handler) {
+  ScriptApp.getProjectTriggers()
+    .filter((t) => t.getHandlerFunction() === handler)
+    .forEach((t) => ScriptApp.deleteTrigger(t));
+}
+
+// ---- Sign-up helper ----
+
+function setupHelper() {
+  token_();
+  deleteTriggers_("helpStuckSignups");
+  ScriptApp.newTrigger("helpStuckSignups").timeBased().everyMinutes(10).create();
+  helpStuckSignups();
+  console.log("Sign-up helper is on. It checks for stuck sign-ups every 10 minutes.");
+}
+
+function stopHelper() {
+  deleteTriggers_("helpStuckSignups");
+  console.log("Sign-up helper is off.");
+}
+
+function callHelper_(payload) {
+  const res = UrlFetchApp.fetch(HELPER_URL, {
+    method: "post",
+    contentType: "application/json",
+    headers: { Authorization: "Bearer " + token_() },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true,
+  });
+  if (res.getResponseCode() !== 200) throw new Error("KNOT answered " + res.getResponseCode() + ": " + res.getContentText().slice(0, 200));
+  return JSON.parse(res.getContentText());
+}
+
+// Asks KNOT who needs help, emails them, and reports back what was sent.
+function helpStuckSignups() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) return;
+  try {
+    const { emails } = callHelper_({ action: "claim" });
+    const sent = [];
+    const failed = [];
+    for (const e of emails || []) {
+      try {
+        GmailApp.sendEmail(e.to, e.subject, e.text, { htmlBody: e.html, name: HELPER_NAME });
+        sent.push(e.id);
+      } catch (err) {
+        console.warn("Couldn't email " + e.to + ": " + err);
+        failed.push(e.id);
+      }
+    }
+    if (sent.length || failed.length) callHelper_({ action: "done", sent: sent, failed: failed });
+    if (sent.length) console.log("Sent " + sent.length + " help email(s).");
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Shows who would be emailed right now, without sending. Note: this marks
+// them as claimed for 30 minutes, after which they're due again.
+function previewHelper() {
+  const { emails } = callHelper_({ action: "claim" });
+  if (!emails || !emails.length) return console.log("Nobody needs a help email right now.");
+  emails.forEach((e) => console.log(e.to + " | " + e.subject));
 }
 
 // Lists the subjects that would be sent from the last 7 days. Nothing is sent.

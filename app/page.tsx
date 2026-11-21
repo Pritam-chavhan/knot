@@ -44,9 +44,11 @@ const DEMOS = [
   },
 ];
 
-export default async function Landing({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function Landing({ searchParams }: { searchParams: Promise<{ error?: string; email?: string }> }) {
   if (await currentUserId()) redirect("/discover");
-  const { error } = await searchParams;
+  const { error, email } = await searchParams;
+  // Links in help emails fill in the address (only a well-formed one).
+  const prefill = email && email.length <= 120 && /^[a-z0-9._%+-]+@[a-z0-9.-]+$/i.test(email) ? email : undefined;
 
   return (
     <div className="overflow-x-clip">
@@ -72,7 +74,7 @@ export default async function Landing({ searchParams }: { searchParams: Promise<
           )}
 
           <div id="join" className="mt-7 scroll-mt-6 rounded-[28px] bg-card p-5 shadow-[0_20px_50px_-30px_rgba(23,20,43,0.45)]">
-            <SignInForm />
+            <SignInForm initialEmail={prefill} />
           </div>
         </div>
 

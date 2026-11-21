@@ -9,7 +9,7 @@ export default async function AdminSignups({ searchParams }: { searchParams: Pro
   const { supabase } = await requireAdmin();
   const { stage } = await searchParams;
   const filter = FILTERS.includes(stage as Filter) ? (stage as Filter) : "all";
-  const { data, error } = await supabase.rpc("admin_signups", { p_limit: 500 });
+  const [{ data, error }, helper] = await Promise.all([supabase.rpc("admin_signups", { p_limit: 500 }), supabase.rpc("admin_helper_status")]);
   if (error) throw new Error("signups_failed");
-  return <SignupsView rows={(data ?? []) as Signup[]} filter={filter} />;
+  return <SignupsView rows={(data ?? []) as Signup[]} filter={filter} helperSeen={(helper.data as string | null) ?? null} />;
 }

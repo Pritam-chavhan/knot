@@ -61,3 +61,19 @@ flowchart LR
 5. **Start.** Run `setup`. It checks every minute and catches up on the last three days of mail.
 
 To pause the feed, run `stop`. To replace the token, run `createToken` again and store the new fingerprint.
+
+## Sign-up helper
+
+The same script can also help students who get stuck signing up. Run `setupHelper` once in the script project; it adds a second trigger that runs every 10 minutes (the campus feed keeps its own one-minute trigger, and `stop` / `stopHelper` each turn off only their own).
+
+Each run, the script calls `POST /api/signup-help` with the same private token:
+
+1. `{"action": "claim"}`: KNOT returns the help emails due now, with subject, text and HTML already written. KNOT alone decides who gets one:
+   - asked for a code but never entered it: first email after 15 quiet minutes (a newly requested code restarts the wait)
+   - entered the code but never finished the profile: first email after 20 minutes
+   - one follow-up an hour after the first, then nothing more for that step
+   - never once the student has joined, never for sign-ups older than two days, and never for an address that looks like a typo of someone who then got in (same domain, same first six characters)
+2. The script sends each email from the account it runs in, as "Pritam from KNOT", so students can reply. Mail between IITGN addresses reaches the inbox, which matters most for students whose sign-in code went to spam.
+3. `{"action": "done", "sent": [...], "failed": [...]}`: KNOT records the result. A claim that's never confirmed becomes due again after 30 minutes; a failed address isn't retried.
+
+If a student is still stuck an hour after their second email, the founder gets a push notification to reach out personally. The founder dashboard's Sign-ups tab shows whether the helper is running, who was emailed, and who got in afterwards.

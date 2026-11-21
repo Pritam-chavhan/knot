@@ -14,6 +14,8 @@ export type Signup = {
   verified_at: string | null;
   joined_at: string | null;
   last_seen_at: string | null;
+  help_emails: number;
+  last_help_at: string | null;
 };
 
 // A student counts as stuck after this long at a step.
@@ -40,10 +42,13 @@ const FILTERS = [
 ] as const;
 export type Filter = (typeof FILTERS)[number]["id"];
 
-export function SignupsView({ rows, filter, now = Date.now() }: { rows: Signup[]; filter: Filter; now?: number }) {
+export function SignupsView({ rows, filter, helperSeen = null, now = Date.now() }: { rows: Signup[]; filter: Filter; helperSeen?: string | null; now?: number }) {
   const count = (st: Signup["stage"]) => rows.filter((r) => r.stage === st).length;
   const stuck = rows.filter((r) => isStuck(r, now));
   const today = rows.filter((r) => now - new Date(r.started_at).getTime() < 86_400_000).length;
+  const helped = rows.filter((r) => r.help_emails > 0);
+  const recovered = helped.filter((r) => r.stage === "joined").length;
+  const helperOn = !!helperSeen && now - new Date(helperSeen).getTime() < 30 * 60_000;
   const shown = filter === "all" ? rows : filter === "stuck" ? stuck : rows.filter((r) => r.stage === filter);
 
   return (
@@ -68,6 +73,20 @@ export function SignupsView({ rows, filter, now = Date.now() }: { rows: Signup[]
           "Nobody is stuck."
         )}{" "}
         Updates every 30 seconds.
+      </p>
+      <p className={`mt-2 flex items-center gap-2 rounded-[16px] px-3 py-2.5 text-[13px] ${helperOn ? "bg-river-tint text-river-deep" : "bg-marigold-tint text-ink"}`}>
+        <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${helperOn ? "bg-river" : "bg-marigold"}`} />
+        <span>
+          {helperOn ? (
+            <>
+              <span className="font-bold">Sign-up helper is on</span> · checked {ago(helperSeen, now).toLowerCase()}. {helped.length} emailed, {recovered} got in after.
+            </>
+          ) : (
+            <>
+              <span className="font-bold">Sign-up helper is off.</span> Run &ldquo;setupHelper&rdquo; in the campus mail script to turn it on.
+            </>
+          )}
+        </span>
       </p>
 
       <nav aria-label="Filter sign-ups" className="-mx-5 mt-4 overflow-x-auto px-5">
@@ -119,6 +138,13 @@ function SignupRow({ s, now }: { s: Signup; now: number }) {
             {detail}
             {s.status === "suspended" ? " · suspended" : ""}
           </p>
+          {s.help_emails > 0 && (
+            <p className={`mt-0.5 text-[12.5px] font-semibold ${s.stage === "joined" ? "text-river-deep" : "text-soft"}`}>
+              {s.stage === "joined"
+                ? `Got in after ${s.help_emails === 1 ? "a help email" : `${s.help_emails} help emails`}`
+                : `Help email${s.help_emails === 1 ? "" : "s"} sent: ${s.help_emails}, last ${ago(s.last_help_at, now).toLowerCase()}`}
+            </p>
+          )}
         </div>
         <span className={`shrink-0 rounded-full px-2.5 py-1 text-[12px] font-bold ${STAGE[s.stage].tone}`}>{STAGE[s.stage].label}</span>
       </div>
