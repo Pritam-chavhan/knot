@@ -28,13 +28,13 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
         </svg>
         <h1 className="font-display mt-4 text-[34px] leading-[1.02] font-extrabold">Check your email</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-soft">
-          We sent a sign-in link to <span className="font-bold text-ink">{masked}</span>. Open it on this phone and
-          you&apos;re in.
+          We sent a 6-digit code to <span className="font-bold text-ink">{masked}</span>, from KNOT. Type it below, or tap
+          &ldquo;Sign in to KNOT&rdquo; in the email on this phone.
         </p>
       </div>
 
       <div className="mt-6 rounded-[28px] bg-card p-5">
-        <p className="text-[14px] text-soft">Got a 6-digit code instead? Enter it here.</p>
+        <p className="text-[14px] text-soft">Using KNOT from your home screen? Type the code here: links open in your browser.</p>
         <div className="mt-3">
           <VerifyForm email={email} />
         </div>
