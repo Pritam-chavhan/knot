@@ -8,6 +8,7 @@ import { PhotoPicker } from "@/features/profile/photo-picker";
 import { ProfileLinks } from "@/features/profile/profile-links";
 import { avatarSrc } from "@/lib/avatar";
 import { signOut } from "@/features/auth/actions";
+import { FEEDBACK_EMAIL, feedbackHref } from "@/lib/contact";
 import { BlockedList } from "@/features/chat/blocked-list";
 
 const DELETE_MESSAGES: Record<string, string> = {
@@ -102,6 +103,18 @@ export function ProfileView({
             <path d="M9 6l6 6-6 6" />
           </svg>
         </Link>
+        <a href={feedbackHref()} className="flex items-center gap-3.5 rounded-[24px] bg-thread-tint px-5 py-4 transition-transform active:scale-[0.99]">
+          <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-thread text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3.5" y="5.5" width="17" height="13" rx="3" />
+              <path d="M4.5 7l7.5 6 7.5-6" />
+            </svg>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-bold text-thread-deep">Feedback or ideas?</span>
+            <span className="block text-[13px] text-soft">Write to Pritam, who builds KNOT: {FEEDBACK_EMAIL}</span>
+          </span>
+        </a>
         <form action={signOut}>
           <Button type="submit" variant="ghost" className="w-full">
             Sign out

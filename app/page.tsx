@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { currentUserId } from "@/lib/auth";
+import { FEEDBACK_EMAIL, feedbackHref } from "@/lib/contact";
 import type { ReactNode } from "react";
 import { KnotMark, Logo } from "@/components/ui";
 import { DayTimeline, SafetyList } from "@/components/art";
@@ -152,6 +153,12 @@ export default async function Landing({ searchParams }: { searchParams: Promise<
 
       <footer className="mx-auto max-w-md px-5 pb-10 text-center text-[12px] leading-relaxed text-muted lg:max-w-5xl">
         An independent student project, not affiliated with IIT Gandhinagar. Events and people shown on this page are examples.
+        <br />
+        Questions or ideas? Write to{" "}
+        <a href={feedbackHref("KNOT question")} className="font-semibold text-thread-deep underline underline-offset-2">
+          {FEEDBACK_EMAIL}
+        </a>
+        .
       </footer>
     </div>
   );
