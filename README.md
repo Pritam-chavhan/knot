@@ -16,7 +16,7 @@ Every event at IIT Gandhinagar, who's going, and an easy way to go together.
 
 [**Open the app**](https://knot-tau.vercel.app) · [Architecture](docs/ARCHITECTURE.md) · [Security model](docs/SECURITY.md) · [Email feed](docs/EMAIL_FEED.md) · [Engineering rules](docs/ENGINEERING.md)
 
-<img src="docs/hero.png" alt="KNOT on a phone: the event feed, a classmate's profile and the Activity tab" width="100%" />
+<img src="docs/hero.png" alt="KNOT on three phones: the event feed, the live campus map and a chat" width="100%" />
 
 </div>
 
@@ -64,14 +64,21 @@ KNOT turns that inbox into one live feed of what's on, shows how many people are
   </tr>
   <tr>
     <td align="center"><img src="docs/screenshots/plans.png" alt="My plans grouped by day" width="170" /><br /><sub>My plans</sub></td>
-    <td align="center"><img src="docs/screenshots/activity.png" alt="Activity with join requests to review" width="170" /><br /><sub>Activity</sub></td>
     <td align="center"><img src="docs/screenshots/profile.png" alt="A classmate's profile with photo, links and shared interests" width="170" /><br /><sub>Profile</sub></td>
+    <td align="center"><img src="docs/screenshots/chats.png" alt="Chats with a connection request and unread messages" width="170" /><br /><sub>Chats</sub></td>
+    <td align="center"><img src="docs/screenshots/chat.png" alt="A one-to-one chat" width="170" /><br /><sub>Chat</sub></td>
+    <td align="center"><img src="docs/screenshots/map.png" alt="Live campus map with classmates' photos and a wave" width="170" /><br /><sub>Who's around</sub></td>
+  </tr>
+  <tr>
     <td align="center"><img src="docs/screenshots/inbox.png" alt="Dashboard Inbox with a proposed venue change" width="170" /><br /><sub>Inbox</sub></td>
+    <td align="center"><img src="docs/screenshots/reports.png" alt="Reports queue showing a reported chat message" width="170" /><br /><sub>Reports</sub></td>
     <td align="center"><img src="docs/screenshots/dashboard.png" alt="Founder dashboard with a 30-day chart" width="170" /><br /><sub>Dashboard</sub></td>
+    <td></td>
+    <td></td>
   </tr>
 </table>
 
-<sub>Screens shown with sample data.</sub>
+<sub>Screens shown with sample data. Map © OpenStreetMap contributors.</sub>
 
 ## How it's built
 
@@ -80,12 +87,12 @@ flowchart LR
   subgraph Phone["Student's phone"]
     UI["Next.js pages<br/>(React Server Components)"]
   end
-  subgraph Vercel
-    MW["Middleware<br/>session refresh, CSP nonce"]
+  subgraph Vercel["Vercel (Mumbai)"]
+    MW["Middleware<br/>session check, CSP nonce"]
     SA["Server actions<br/>Zod validation"]
     IN["/api/ingest/email<br/>token-authenticated"]
   end
-  subgraph Supabase
+  subgraph Supabase["Supabase (Mumbai)"]
     AUTH["Auth<br/>college email sign-in"]
     FN["Database functions<br/>capacity, approvals, rate limits"]
     DB[("Postgres<br/>row-level security on every table")]
@@ -99,11 +106,13 @@ flowchart LR
   IN --> DB
   UI -. sign-in link .-> AUTH
   DB -. realtime .-> UI
+  UI -. map tiles .-> OSM["OpenStreetMap"]
 ```
 
 - **The database is the security boundary.** Every table has row-level security. Anything with rules that must hold (taking the last spot, letting someone in, admin changes) runs in a Postgres function in one transaction, with the row locked.
 - **Thin server layer.** Server actions validate input with Zod and act as the signed-in student. The service key is used only where a student can't act for themselves: the sign-up check, photo storage, account deletion and the email feed.
 - **Locked-down pages.** A fresh nonce-based Content Security Policy on every request, HSTS, frame blocking and a strict permissions policy. No third-party scripts.
+- **Fast on campus.** The server runs in Mumbai next to the database. Sign-ins are verified locally with the project's public signing key, each page checks the student once, buttons like Going change the moment they're tapped, and every screen has a loading placeholder.
 
 More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -118,7 +127,7 @@ More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Campus mail.** Mail that isn't about an event is discarded on arrival. Email addresses and phone numbers are removed before any mail reaches the AI, and kept text is erased after 30 days.
 - **Admins.** Every admin action is logged in an append-only audit log. The founder can't be suspended or demoted, and only the founder can change another admin.
 
-Every feature was reviewed against these rules by an independent security review before release, and each finding is covered by a test. Full details in [docs/SECURITY.md](docs/SECURITY.md); to report a problem, see [SECURITY.md](SECURITY.md).
+Each of these rules is enforced in the database and covered by a test. Full details in [docs/SECURITY.md](docs/SECURITY.md); to report a problem, see [SECURITY.md](SECURITY.md).
 
 ## Quality
 
@@ -137,6 +146,7 @@ CI runs lint, type checks, all tests, a dependency audit, a production build and
 - **App:** Next.js 15 (App Router, Server Components, Server Actions), React 19, TypeScript, Tailwind CSS 4
 - **Data:** Supabase (Postgres with row-level security, Auth, Storage, Realtime)
 - **AI:** Google Gemini API for reading campus mail, with the Anthropic API as a drop-in alternative
+- **Map:** Leaflet with OpenStreetMap tiles, loaded only on the map page
 - **Images:** sharp, for server-side re-encoding of profile photos
 - **Validation:** Zod
 - **Testing:** Vitest with PGlite for database tests, Playwright with axe-core for browser tests
@@ -147,7 +157,7 @@ CI runs lint, type checks, all tests, a dependency audit, a production build and
 
 ```
 app/
-  (app)/                Signed-in pages: discover, events, host, plans, activity, people, profile, admin
+  (app)/                Signed-in pages: discover, events, host, plans, chats, map, people, profile, admin
   api/ingest/email/     Endpoint the Gmail script posts campus mail to
   avatar/               Auth-checked profile photo route
   welcome/, onboarding/ Welcome tour and first-time profile setup
@@ -202,7 +212,7 @@ To connect campus mail, follow [docs/EMAIL_FEED.md](docs/EMAIL_FEED.md).
 - [x] College email sign-in and onboarding with an interactive tour
 - [x] Event feed, Going and Interested, hosted plans with join requests
 - [x] Founder dashboard with activity stats, moderation and an audit log
-- [x] Profiles with photos and links, My plans, Activity, five-tab navigation
+- [x] Profiles with photos and links, My plans, five-tab navigation
 - [x] Live campus email feed with AI reading and a review Inbox
 - [x] Connection requests and live one-to-one chat between connected students
 - [x] Block and report everywhere, with a Reports queue in the dashboard

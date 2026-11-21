@@ -9,7 +9,7 @@ const TABS: Tab[] = [
   {
     href: "/discover",
     label: "Discover",
-    match: (p) => p.startsWith("/discover") || p.startsWith("/events"),
+    match: (p) => p.startsWith("/discover") || p.startsWith("/events") || p.startsWith("/map"),
     icon: <><circle cx="12" cy="12" r="8.5" /><path d="M15.2 8.8l-1.9 4.5-4.5 1.9 1.9-4.5z" /></>,
   },
   {

@@ -8,9 +8,11 @@ let ravi: string;
 let meera: string;
 let kabir: string;
 
-// Spots on campus (the Academic Block and the hostels) and off campus (Ahmedabad).
-const ACAD = [23.2135, 72.6858] as const;
-const HOSTEL = [23.2101, 72.6847] as const;
+// Spots on campus (the Academic Block and Duven hostel), in Palaj village
+// next to campus, and in Ahmedabad.
+const ACAD = [23.21456, 72.68571] as const;
+const HOSTEL = [23.21024, 72.6852] as const;
+const VILLAGE = [23.206, 72.68] as const;
 const CITY = [23.0225, 72.5714] as const;
 
 const run = <T = Record<string, unknown>>(who: string, sql: string, params: unknown[] = []) =>
@@ -41,6 +43,8 @@ describe("sharing your spot", () => {
   it("only works on campus", async () => {
     await expect(start(asha, CITY)).rejects.toThrow(/off_campus/);
     await expect(start(asha, [ACAD[0], 72.71])).rejects.toThrow(/off_campus/);
+    // Right next to campus, but outside its outline.
+    await expect(start(asha, VILLAGE)).rejects.toThrow(/off_campus/);
   });
 
   it("only for 15, 30, 60 or 120 minutes, to connections or everyone", async () => {

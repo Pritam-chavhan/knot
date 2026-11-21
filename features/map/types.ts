@@ -1,4 +1,13 @@
-export type Bounds = { south: number; north: number; west: number; east: number; center_lat: number; center_lng: number };
+export type Bounds = {
+  south: number;
+  north: number;
+  west: number;
+  east: number;
+  center_lat: number;
+  center_lng: number;
+  // The campus outline as [lat, lng] points, when set.
+  polygon?: [number, number][];
+};
 
 export type Sharing = { expires_at: string; visibility: "connections" | "campus"; precise: boolean; started_at: string };
 

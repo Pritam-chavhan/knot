@@ -1,0 +1,37 @@
+name: Something isn't working
+description: Tell us what went wrong in KNOT.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for testing KNOT. Please don't include anyone's private messages, email address or location.
+  - type: input
+    id: where
+    attributes:
+      label: Where in the app?
+      placeholder: e.g. Chats, the map, hosting a plan
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you do?
+      placeholder: "1. Opened a classmate's profile\n2. Tapped Connect\n3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and browser
+      placeholder: e.g. Android 15, Chrome
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot (optional)
+      description: Drag an image here. Cover anyone else's name or photo.

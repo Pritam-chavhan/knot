@@ -64,7 +64,9 @@ export default function CampusMap({ bounds, me, people, selected, onSelect, rece
     L.control.attribution({ prefix: false, position: "topright" }).addAttribution("© OpenStreetMap").addTo(m);
     L.tileLayer(TILE_URL, { maxZoom: 19, detectRetina: true }).addTo(m);
     // The area where sharing works.
-    L.rectangle(area, { color: "#5A3DF0", weight: 1.5, dashArray: "6 6", fill: true, fillOpacity: 0.03, interactive: false }).addTo(m);
+    const outline = { color: "#5A3DF0", weight: 1.5, dashArray: "6 6", fill: true, fillOpacity: 0.03, interactive: false };
+    if (bounds.polygon && bounds.polygon.length >= 3) L.polygon(bounds.polygon, outline).addTo(m);
+    else L.rectangle(area, outline).addTo(m);
     m.on("click", () => onSelectRef.current(null));
     layer.current = L.layerGroup().addTo(m);
     meLayer.current = L.layerGroup().addTo(m);

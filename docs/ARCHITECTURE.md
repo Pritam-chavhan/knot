@@ -20,9 +20,18 @@ sequenceDiagram
   S-->>P: HTML (React Server Components)
 ```
 
-1. **Middleware** (`middleware.ts`) sets a fresh Content Security Policy nonce on every request, refreshes the Supabase session cookie, and sends signed-out visitors to the landing page.
-2. **The app layout** (`app/(app)/layout.tsx`) requires a signed-in, active, onboarded student (`lib/auth.ts`), records the day as active for the dashboard, and counts requests waiting for the tab-bar badge.
+1. **Middleware** (`middleware.ts`) sets a fresh Content Security Policy nonce on every request, checks the session (verifying its token locally with the project's public signing key, refreshing it if it has expired) and sends signed-out visitors to the landing page.
+2. **The app layout** (`app/(app)/layout.tsx`) requires a signed-in, active, onboarded student (`lib/auth.ts`), records the day as active for the dashboard, and counts unread chats and requests for the tab-bar badge. The sign-in check and profile read happen once per request and are shared with the page.
 3. **Pages and server actions** use a Supabase client that acts as the signed-in student (`lib/supabase/server.ts`), so the database decides what they can read and write.
+
+## Speed
+
+- **One region.** The app's server functions run in Vercel's Mumbai region (`vercel.json`), next to the Supabase database, so each query is a few milliseconds instead of a round trip to another continent.
+- **No network call to check a sign-in.** Sessions are signed with an ECC key; the server verifies them locally.
+- **Fewer trips per page.** The layout and the page share one sign-in check and one profile read (`React.cache`), and independent queries run in parallel.
+- **Instant feedback.** Going and Interested switch the moment they're tapped and the server confirms in the background. Chat messages appear before they're delivered and retry safely.
+- **Loading placeholders.** Every screen shows its shape straight away while data loads. Profile photos are reused for two minutes before being checked again.
+- **Light pages.** The map library loads only on the map page.
 
 ## Where rules live
 
@@ -74,7 +83,7 @@ Messages are published too. An open chat adds new messages as they arrive, and s
 1. The phone crops the photo to a square and sends a JPEG.
 2. The server checks the file type from its first bytes, then re-encodes it to a 512 px WebP with `sharp`. This also removes metadata such as GPS location.
 3. The file goes to a private bucket under the student's own folder, and `set_avatar` records it.
-4. `/avatar/[id]/[file]` serves it only to signed-in students who can see that profile, checking access on every view.
+4. `/avatar/[id]/[file]` serves it only to signed-in students who can see that profile. Phones reuse a photo for two minutes, then check access again.
 
 ## Campus email feed
 

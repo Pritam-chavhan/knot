@@ -44,7 +44,7 @@ Admin rights stop at the institution boundary.
 - **Opt-in, for a set time.** Sharing lasts 15, 30, 60 or 120 minutes and can be stopped at once. Stopping deletes the spot.
 - **You see others only while you share.** Nobody can watch the map without being on it.
 - **Your choice of audience and precision.** Everyone at IITGN, or connections only; an exact spot, or a rough area rounded to about 100 metres inside the database.
-- **Campus only.** Positions outside the campus box (`institutions.map_bounds`) are refused, and leaving campus stops sharing. A college with no box set can't share at all.
+- **Campus only.** Positions outside the campus outline (`institutions.map_bounds.polygon`, which follows IITGN and leaves out Palaj village and the farmland across the road) are refused, and leaving campus stops sharing. A college with no outline or box set can't share at all.
 - **No history.** One current row per student, overwritten as they move (at most once every 10 seconds) and deleted when sharing ends or expires.
 - **Blocks and suspensions** hide people from each other on the map, both ways. Waves go only to people you can see, once per half hour, and are deleted after a day.
 - **Map tiles** come from OpenStreetMap. They show which part of campus a viewer is looking at, never where anyone is.
@@ -53,7 +53,7 @@ Admin rights stop at the institution boundary.
 
 - **Upload checks.** Uploads are checked by their first bytes, limited in size and pixel count, and processed one at a time.
 - **Re-encoding.** Every photo is re-encoded on the server, which removes metadata such as GPS location.
-- **Storage.** Photos are kept in a private bucket and served through an auth-checked route that checks access on every view. Removing a photo, blocking or suspending takes effect at once.
+- **Storage.** Photos are kept in a private bucket and served through a route that checks the viewer can see that profile. Phones reuse a photo for up to two minutes before checking again, so removing a photo, blocking or suspending takes effect within two minutes.
 - **Links.** GitHub, Instagram and LinkedIn are stored as usernames and always rebuilt as links to the official site, so a profile link can't point anywhere else.
 
 ## Campus email feed
@@ -72,7 +72,7 @@ See the Privacy and Safety sections of [EMAIL_FEED.md](EMAIL_FEED.md). In short:
 
 ## How changes are checked
 
-- **Security review.** Each feature had an independent security review before release, and each finding was fixed and covered by a test in `tests/db` or `tests/unit`.
+- **Security review.** Each feature is reviewed against these rules before release, and each rule is covered by a test in `tests/db` or `tests/unit`.
 - **CI.** Runs the full test suite and a dependency audit on every push.
 
 To report a security problem, see [../SECURITY.md](../SECURITY.md).
