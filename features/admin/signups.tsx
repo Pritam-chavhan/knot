@@ -19,7 +19,7 @@ export type Signup = {
 };
 
 // A student counts as stuck after this long at a step.
-const STUCK_MIN = { code_sent: 10, verified: 15 } as const;
+const STUCK_MIN = { code_sent: 5, verified: 20 } as const;
 
 export function isStuck(s: Signup, now: number) {
   if (s.stage === "joined") return false;

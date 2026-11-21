@@ -64,12 +64,12 @@ To pause the feed, run `stop`. To replace the token, run `createToken` again and
 
 ## Sign-up helper
 
-The same script can also help students who get stuck signing up. Run `setupHelper` once in the script project; it adds a second trigger that runs every 10 minutes (the campus feed keeps its own one-minute trigger, and `stop` / `stopHelper` each turn off only their own).
+The same script can also help students who get stuck signing up. Run `setupHelper` once in the script project; it adds a second trigger that runs every minute (the campus feed keeps its own one-minute trigger, and `stop` / `stopHelper` each turn off only their own).
 
 Each run, the script calls `POST /api/signup-help` with the same private token:
 
 1. `{"action": "claim"}`: KNOT returns the help emails due now, with subject, text and HTML already written. KNOT alone decides who gets one:
-   - asked for a code but never entered it: first email after 15 quiet minutes (a newly requested code restarts the wait)
+   - asked for a code but never entered it: first email after 5 quiet minutes (a newly requested code restarts the wait). This email carries a fresh sign-in code and one-tap link, made by KNOT with Supabase's admin API without Supabase sending anything, because some IITGN addresses refuse mail from outside IITGN (`554 5.7.1 Recipient address rejected: Access denied`) and never receive the normal code
    - entered the code but never finished the profile: first email after 20 minutes
    - one follow-up an hour after the first, then nothing more for that step
    - never once the student has joined, never for sign-ups older than two days, and never for an address that looks like a typo of someone who then got in (same domain, same first six characters)

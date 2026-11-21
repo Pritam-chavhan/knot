@@ -51,6 +51,10 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
             Found it in Spam? Tap <span className="font-semibold text-ink">Not spam</span>, so the next one lands in your inbox.
           </li>
           <li>Still nothing after a minute? Send a new code above.</li>
+          <li>
+            Some IITGN inboxes block outside mail. If nothing arrives in 5 minutes, you&apos;ll get a code from Pritam&apos;s IITGN address
+            instead.
+          </li>
         </ul>
       </div>
 

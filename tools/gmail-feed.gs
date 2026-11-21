@@ -18,10 +18,11 @@
  * To stop: run "stop", or delete the project.
  *
  * Sign-up helper (optional, same project):
- *   Run "setupHelper" once. Every 10 minutes it asks KNOT who is stuck
- *   signing up and emails them help from this account, as "Pritam from
- *   KNOT". KNOT decides who and when: at most two emails per student, never
- *   after they've joined. To check without sending, run "previewHelper".
+ *   Run "setupHelper" once. Every minute it asks KNOT who is stuck signing
+ *   up and emails them help from this account, as "Pritam from KNOT". Some
+ *   IITGN addresses refuse mail from outside IITGN, so for anyone who never
+ *   got their code, the email carries a fresh sign-in code. KNOT decides who
+ *   and when: at most two emails per step, never after they've joined. To check without sending, run "previewHelper".
  *   To stop it, run "stopHelper".
  */
 
@@ -81,9 +82,9 @@ function deleteTriggers_(handler) {
 function setupHelper() {
   token_();
   deleteTriggers_("helpStuckSignups");
-  ScriptApp.newTrigger("helpStuckSignups").timeBased().everyMinutes(10).create();
+  ScriptApp.newTrigger("helpStuckSignups").timeBased().everyMinutes(1).create();
   helpStuckSignups();
-  console.log("Sign-up helper is on. It checks for stuck sign-ups every 10 minutes.");
+  console.log("Sign-up helper is on. It checks for stuck sign-ups every minute.");
 }
 
 function stopHelper() {

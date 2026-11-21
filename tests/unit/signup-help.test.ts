@@ -24,3 +24,15 @@ describe("help emails", () => {
     expect(e.html).toContain("&lt;b&gt;x&lt;/b&gt;");
   });
 });
+
+describe("help emails with a fresh code", () => {
+  it("put the code in the subject and body, and the one-tap link on the button", () => {
+    const link = `${site}/auth/callback?token_hash=abc&type=magiclink`;
+    const e = helpEmail({ stage: "code_sent", attempt: 1, email: "d.j@iitgn.ac.in", name: null, site, signIn: { code: "482913", link } });
+    expect(e.subject).toBe("Your KNOT sign-in code: 482913");
+    expect(e.text).toContain("    482913");
+    expect(e.text).toContain(link);
+    expect(e.html).toContain(">482913<");
+    expect(e.text).toContain("replaces any code sent before");
+  });
+});
