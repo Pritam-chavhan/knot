@@ -30,7 +30,7 @@ sequenceDiagram
 - **No network call to check a sign-in.** Sessions are signed with an ECC key; the server verifies them locally.
 - **Fewer trips per page.** The layout and the page share one sign-in check and one profile read (`React.cache`), and independent queries run in parallel.
 - **Instant feedback.** Going and Interested switch the moment they're tapped and the server confirms in the background. Chat messages appear before they're delivered and retry safely.
-- **Loading placeholders.** Every screen shows its shape straight away while data loads. Profile photos are reused for two minutes before being checked again.
+- **Loading placeholders.** Every screen shows its shape straight away while data loads. Profile photos are reused for 30 minutes before being checked again.
 - **Light pages.** The map library loads only on the map page.
 
 ## Where rules live
@@ -83,7 +83,7 @@ Messages are published too. An open chat adds new messages as they arrive, and s
 1. The phone crops the photo to a square and sends a JPEG.
 2. The server checks the file type from its first bytes, then re-encodes it to a 512 px WebP with `sharp`. This also removes metadata such as GPS location.
 3. The file goes to a private bucket under the student's own folder, and `set_avatar` records it.
-4. `/avatar/[id]/[file]` serves it only to signed-in students who can see that profile. Phones reuse a photo for two minutes, then check access again.
+4. `/avatar/[id]/[file]` serves it only to signed-in students who can see that profile. Phones reuse a photo for 30 minutes, then check access again.
 
 ## Campus email feed
 

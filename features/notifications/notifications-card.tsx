@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { isIOS, isInstalled, pushSupported, serviceWorker, urlBase64ToUint8Array } from "./device";
-import { removePushSubscription, savePushSubscription } from "./actions";
+import { serviceWorker } from "./device";
+import { removePushSubscription } from "./actions";
+import { askPermission, ensurePush, pushState, setOptedOut } from "./push-client";
 
 type State = "loading" | "unsupported" | "install-first" | "off" | "on" | "blocked" | "busy";
 
@@ -14,36 +15,22 @@ export function NotificationsCard({ publicKey, compact = false }: { publicKey: s
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      if (isIOS() && !isInstalled()) return setState("install-first");
-      if (!pushSupported()) return setState("unsupported");
-      if (Notification.permission === "denied") return setState("blocked");
-      const reg = await serviceWorker();
-      const sub = await reg?.pushManager.getSubscription();
-      if (sub && Notification.permission === "granted") {
-        // Keep the server's copy current (it may have been cleared).
-        void savePushSubscription(sub.toJSON());
-        return setState("on");
-      }
-      setState("off");
-    })().catch(() => setState("unsupported"));
-  }, []);
+    ensurePush(publicKey)
+      .then(setState)
+      .catch(() => setState(pushState() === "on" ? "off" : pushState()));
+  }, [publicKey]);
 
   async function turnOn() {
     setError(null);
+    // Ask first, straight from the tap, as browsers require.
+    const asked = askPermission();
     setState("busy");
     try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") return setState(permission === "denied" ? "blocked" : "off");
-      const reg = await serviceWorker();
-      if (!reg) return setState("unsupported");
-      await navigator.serviceWorker.ready;
-      const sub =
-        (await reg.pushManager.getSubscription()) ??
-        (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) }));
-      const { ok } = await savePushSubscription(sub.toJSON());
-      if (!ok) throw new Error("save");
-      setState("on");
+      if (asked) {
+        const permission = await asked;
+        if (permission !== "granted") return setState(permission === "denied" ? "blocked" : "off");
+      }
+      setState(await ensurePush(publicKey));
     } catch {
       setError("Notifications couldn't be turned on. Try again in a moment.");
       setState("off");
@@ -58,6 +45,7 @@ export function NotificationsCard({ publicKey, compact = false }: { publicKey: s
       await removePushSubscription(sub.endpoint);
       await sub.unsubscribe().catch(() => {});
     }
+    setOptedOut(true);
     setState("off");
   }
 

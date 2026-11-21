@@ -207,7 +207,8 @@ describe("waves", () => {
     // Meera shares with connections only, so Asha can't see her or wave.
     await expect(run(asha, "select public.send_wave($1)", [meera])).rejects.toThrow(/not_found/);
     await run(meera, "select public.send_wave($1)", [asha]);
-    await expect(run(meera, "select public.send_wave($1)", [asha])).rejects.toThrow(/already_waved/);
+    // A repeat within half an hour is accepted quietly and adds nothing.
+    await run(meera, "select public.send_wave($1)", [asha]);
     const waves = await run<{ display_name: string; visible: boolean }>(asha, "select display_name, visible from public.my_waves()");
     expect(waves).toEqual([{ display_name: "Meera", visible: false }]);
     expect(await run(meera, "select * from public.my_waves()")).toHaveLength(0);

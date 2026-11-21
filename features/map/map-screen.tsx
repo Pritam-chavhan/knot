@@ -28,6 +28,7 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
   const [pos, setPos] = useState<Pos | null>(null);
   const [people, setPeople] = useState<MapPerson[]>([]);
   const [waves, setWaves] = useState<Wave[]>([]);
+  const [wavedIds, setWavedIds] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -200,10 +201,14 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
     ended("You've stopped sharing. Your spot is gone from the map.");
   }
 
+  // Waving twice is harmless: the database ignores a repeat within 30
+  // minutes, and the buttons remember who you've already waved at.
   async function wave(id: string) {
+    if (wavedIds[id]) return null;
     const { error } = (await browserClient()?.rpc("send_wave", { p_to: id })) ?? { error: { message: "" } };
-    if (error) return mapError(error);
-    void afterWaveSent(id).catch(() => {});
+    if (error && !error.message?.startsWith("already_waved")) return mapError(error);
+    setWavedIds((s) => ({ ...s, [id]: true }));
+    if (!error) void afterWaveSent(id).catch(() => {});
     return null;
   }
 
@@ -279,9 +284,9 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
             {notice}
           </p>
         )}
-        {waves.length > 0 && !person && <WaveList waves={waves} sharing={!!sharing} onShow={(id) => setSelected(id)} onWave={wave} />}
+        {waves.length > 0 && !person && <WaveList waves={waves} sharing={!!sharing} waved={wavedIds} onShow={(id) => setSelected(id)} onWave={wave} />}
         {person ? (
-          <PersonCard person={person} now={now} onClose={() => setSelected(null)} onWave={wave} />
+          <PersonCard key={person.id} person={person} now={now} waved={!!wavedIds[person.id]} onClose={() => setSelected(null)} onWave={wave} />
         ) : sharing ? (
           <SharingSummary sharing={sharing} count={people.length} />
         ) : (
@@ -374,8 +379,9 @@ function SharingSummary({ sharing, count }: { sharing: Sharing; count: number })
   );
 }
 
-function PersonCard({ person, now, onClose, onWave }: { person: MapPerson; now: number; onClose: () => void; onWave: (id: string) => Promise<string | null> }) {
-  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+function PersonCard({ person, now, waved, onClose, onWave }: { person: MapPerson; now: number; waved: boolean; onClose: () => void; onWave: (id: string) => Promise<string | null> }) {
+  const [sending, setSending] = useState(false);
+  const state = waved ? "sent" : sending ? "sending" : "idle";
   const [err, setErr] = useState<string | null>(null);
   const first = person.name.split(" ")[0];
   return (
@@ -400,10 +406,10 @@ function PersonCard({ person, now, onClose, onWave }: { person: MapPerson; now: 
           className="flex-1"
           disabled={state !== "idle"}
           onClick={async () => {
-            setState("sending");
+            setSending(true);
             const e = await onWave(person.id);
             setErr(e);
-            setState(e ? "idle" : "sent");
+            setSending(false);
           }}
         >
           {state === "sent" ? `Waved at ${first}` : state === "sending" ? "Waving…" : <>👋 Wave</>}
@@ -421,8 +427,7 @@ function PersonCard({ person, now, onClose, onWave }: { person: MapPerson; now: 
   );
 }
 
-function WaveList({ waves, sharing, onShow, onWave }: { waves: Wave[]; sharing: boolean; onShow: (id: string) => void; onWave: (id: string) => Promise<string | null> }) {
-  const [waved, setWaved] = useState<Record<string, boolean>>({});
+function WaveList({ waves, sharing, waved, onShow, onWave }: { waves: Wave[]; sharing: boolean; waved: Record<string, boolean>; onShow: (id: string) => void; onWave: (id: string) => Promise<string | null> }) {
   const w = waves[0];
   const others = waves.length - 1;
   return (
@@ -441,10 +446,7 @@ function WaveList({ waves, sharing, onShow, onWave }: { waves: Wave[]; sharing: 
           <button
             type="button"
             disabled={waved[w.fromId]}
-            onClick={async () => {
-              const e = await onWave(w.fromId);
-              if (!e) setWaved((s) => ({ ...s, [w.fromId]: true }));
-            }}
+            onClick={() => void onWave(w.fromId)}
             className="min-h-11 rounded-full bg-ink px-3 text-[13px] font-bold text-white disabled:opacity-60"
           >
             {waved[w.fromId] ? "Waved" : "Wave back"}

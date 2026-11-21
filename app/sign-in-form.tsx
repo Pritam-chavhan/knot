@@ -53,8 +53,13 @@ export function SignInForm() {
         </p>
       )}
       <Button type="submit" disabled={pending} className="h-14">
-        {pending ? "Sending your link…" : "Email me a sign-in link"}
+        {pending ? "Sending your code…" : "Email me a sign-in code"}
       </Button>
+      {pending && (
+        <p role="status" className="text-center text-[13px] text-muted">
+          This can take a few seconds. No need to tap again.
+        </p>
+      )}
     </form>
   );
 }

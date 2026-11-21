@@ -19,12 +19,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const path = `${id}/${file}`;
   if (data?.avatar_path !== path) return notFound();
 
-  // The phone reuses its copy for two minutes, then checks access again
-  // (a removed photo, a block or a suspension takes effect within two
-  // minutes) and gets "unchanged" without downloading it again.
+  // The phone reuses its own copy for 30 minutes, then checks access again
+  // and gets "unchanged" without downloading it again. A new photo gets a new
+  // address, so changes show at once; a block or a suspension already hides
+  // the person everywhere, and their cached photo expires within 30 minutes.
   const etag = `"${file}"`;
   const cache = {
-    "Cache-Control": "private, max-age=120",
+    "Cache-Control": "private, max-age=1800",
     ETag: etag,
     Vary: "Cookie",
   };

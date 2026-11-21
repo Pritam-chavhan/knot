@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { InstallPrompt } from "@/features/notifications/install-prompt";
+import { SetupNudge } from "@/features/notifications/setup-nudge";
 import type { Profile } from "@/lib/auth";
 import { DayTimeline } from "@/components/art";
 import { Avatar } from "@/components/ui";
@@ -25,6 +25,7 @@ export function DiscoverView({
   events,
   category,
   live = 0,
+  pushKey = null,
   now = new Date(),
 }: {
   profile: Pick<Profile, "id" | "display_name" | "role" | "avatar_path">;
@@ -32,6 +33,7 @@ export function DiscoverView({
   category: string | null;
   // People sharing their spot with everyone right now.
   live?: number;
+  pushKey?: string | null;
   now?: Date;
 }) {
   const name = profile.display_name ?? "there";
@@ -68,7 +70,7 @@ export function DiscoverView({
       </header>
 
       <WhosAroundCard live={live} />
-      <InstallPrompt />
+      <SetupNudge publicKey={pushKey} />
 
       <h2 className="font-display mt-7 text-[24px] font-extrabold">What&apos;s on</h2>
 

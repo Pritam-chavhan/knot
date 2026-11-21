@@ -35,7 +35,7 @@ test("scripts run under the CSP without console errors", async ({ page }) => {
 test("rejects an outside email before sending anything", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Your college email").fill("someone@gmail.com");
-  await page.getByRole("button", { name: "Email me a sign-in link" }).click();
+  await page.getByRole("button", { name: "Email me a sign-in code" }).click();
   await expect(page.getByText("Use your @iitgn.ac.in email.")).toBeVisible();
 });
 

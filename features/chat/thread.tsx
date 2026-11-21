@@ -93,6 +93,25 @@ export function ChatThread({ connectionId, me, other, initial }: Props) {
     };
   }, [connectionId, me, add, markRead]);
 
+  // If the live connection drops (weak campus Wi-Fi, a busy moment), check
+  // for new messages every 5 seconds until it's back.
+  useEffect(() => {
+    if (live) return;
+    const supabase = browserClient();
+    if (!supabase) return;
+    const t = setInterval(async () => {
+      if (document.visibilityState !== "visible") return;
+      const { data } = await supabase
+        .from("messages")
+        .select("id, sender_id, body, created_at")
+        .eq("connection_id", connectionId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      for (const m of (data ?? []) as ThreadMessage[]) add(m);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [live, connectionId, add]);
+
   useEffect(() => () => {
     if (readTimer.current) clearTimeout(readTimer.current);
   }, []);

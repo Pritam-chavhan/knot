@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { DayTimeline, Thread } from "@/components/art";
 import { GoingDemo, HostDemo, MapDemo, PrivacyDemo } from "@/components/demos";
 import { Avatar, KnotMark } from "@/components/ui";
+import { askPermission } from "@/features/notifications/push-client";
 
 type Slide = { title: string; body: string; points?: string[]; tryIt?: string; art: ReactNode; bg: string; dark?: boolean };
 
@@ -133,6 +134,7 @@ export function WelcomeTour({ finishHref, finishLabel }: { finishHref: string; f
           {!last && (
             <Link
               href={finishHref}
+              onClick={() => void askPermission()}
               className={`-mr-2 flex min-h-11 items-center rounded-full px-3.5 text-[14px] font-bold ${
                 s.dark ? "text-white hover:bg-white/15" : "text-ink hover:bg-ink/5"
               }`}
@@ -191,6 +193,7 @@ export function WelcomeTour({ finishHref, finishLabel }: { finishHref: string; f
         {last ? (
           <Link
             href={finishHref}
+              onClick={() => void askPermission()}
             className="flex h-14 flex-1 items-center justify-center rounded-full bg-thread text-[16px] font-bold text-white hover:bg-thread-deep"
           >
             {finishLabel}

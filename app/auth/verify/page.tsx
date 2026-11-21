@@ -41,11 +41,10 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
       </div>
 
       <p className="mt-6 text-center text-[14px] text-muted">
-        Nothing yet? Check spam, wait a minute, then{" "}
+        Wrong email?{" "}
         <Link href="/" className="font-bold text-thread underline underline-offset-2">
-          try again
+          Start again
         </Link>
-        .
       </p>
     </main>
   );

@@ -35,6 +35,11 @@ describe("push subscriptions", () => {
     await expect(run(asha, "select public.save_push_subscription('https://x.example/2', 'short', 'tBHItJI5svbpez7KI4CCXg')")).rejects.toThrow(/bad_subscription/);
   });
 
+  it("can be re-saved any number of times without hitting the daily limit", async () => {
+    for (let i = 0; i < 30; i++) await save(asha, "https://fcm.googleapis.com/fcm/send/asha-phone");
+    expect(await run(asha, "select endpoint from public.push_subscriptions")).toHaveLength(1);
+  });
+
   it("move to the new account when a phone signs in as someone else", async () => {
     await save(ravi, "https://fcm.googleapis.com/fcm/send/asha-phone");
     expect(await run(asha, "select endpoint from public.push_subscriptions")).toHaveLength(0);

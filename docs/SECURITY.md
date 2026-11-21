@@ -60,7 +60,7 @@ Admin rights stop at the institution boundary.
 
 - **Upload checks.** Uploads are checked by their first bytes, limited in size and pixel count, and processed one at a time.
 - **Re-encoding.** Every photo is re-encoded on the server, which removes metadata such as GPS location.
-- **Storage.** Photos are kept in a private bucket and served through a route that checks the viewer can see that profile. Phones reuse a photo for up to two minutes before checking again, so removing a photo, blocking or suspending takes effect within two minutes.
+- **Storage.** Photos are kept in a private bucket and served through a route that checks the viewer can see that profile. Phones reuse a photo for up to 30 minutes before checking again. A new photo has a new address, so it shows at once; a block or suspension already hides the person everywhere, and their cached photo expires within 30 minutes.
 - **Links.** GitHub, Instagram and LinkedIn are stored as usernames and always rebuilt as links to the official site, so a profile link can't point anywhere else.
 
 ## Campus email feed

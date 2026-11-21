@@ -7,10 +7,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { codeSchema, toInstitutionEmail } from "./validation";
 
-export type FormState = { error?: string; email?: string };
+export type FormState = { error?: string; email?: string; sent?: number };
 
-export async function sendCode(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { email, error } = toInstitutionEmail(String(formData.get("email") ?? ""), env.institutionDomain());
+// Sends a sign-in code. Sending through the KNOT mailbox takes a few
+// seconds, so people often tap twice; if a code went out moments ago, that
+// counts as sent and they go straight to typing it in.
+async function requestCode(rawEmail: string): Promise<{ email?: string; error?: string }> {
+  const { email, error } = toInstitutionEmail(rawEmail, env.institutionDomain());
   if (!email) return { error };
 
   // Refuse shared and role addresses before any email is sent.
@@ -29,10 +32,25 @@ export async function sendCode(_prev: FormState, formData: FormData): Promise<Fo
     options: { shouldCreateUser: true, emailRedirectTo: `${origin}/auth/callback` },
   });
   if (otpError) {
-    if (otpError.status === 429) return { error: "You've asked for a few links in a row. Wait a minute, then try again." };
-    return { error: "Your sign-in link didn't send. Try again in a moment." };
+    // A code for this email went out in the last minute: use that one.
+    if (otpError.code === "over_email_send_rate_limit" && /\d+ seconds/.test(otpError.message)) return { email };
+    if (otpError.status === 429) return { error: "Lots of people are signing in right now. Wait a minute, then try again." };
+    return { error: "Your code didn't send. Try again in a moment." };
   }
+  return { email };
+}
+
+export async function sendCode(_prev: FormState, formData: FormData): Promise<FormState> {
+  const { email, error } = await requestCode(String(formData.get("email") ?? ""));
+  if (!email) return { error };
   redirect(`/auth/verify?email=${encodeURIComponent(email)}`);
+}
+
+export async function resendCode(_prev: FormState, formData: FormData): Promise<FormState> {
+  const email = String(formData.get("email") ?? "");
+  const result = await requestCode(email);
+  if (!result.email) return { email, error: result.error };
+  return { email, sent: Date.now() };
 }
 
 export async function verifyCode(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -42,7 +60,13 @@ export async function verifyCode(_prev: FormState, formData: FormData): Promise<
 
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({ email, token: parsed.data, type: "email" });
-  if (error) return { email, error: "That code didn't match. Check the latest email, or ask for a new link." };
+  if (error) {
+    if (error.status === 429) return { email, error: "Too many tries. Wait a minute, then try again." };
+    if (error.code === "otp_expired") {
+      return { email, error: "That code has expired or a newer one was sent. Use the code from the newest email, or send a new one." };
+    }
+    return { email, error: "That code didn't match. Use the 6-digit code from the newest KNOT email." };
+  }
   redirect("/discover");
 }
 
