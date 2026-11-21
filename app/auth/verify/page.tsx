@@ -40,6 +40,20 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
         </div>
       </div>
 
+      <div className="mt-5 rounded-[24px] bg-card p-5 text-[14px] leading-relaxed text-soft">
+        <p className="font-bold text-ink">Can&apos;t find the email?</p>
+        <ul className="mt-1.5 list-disc space-y-1 pl-5">
+          <li>
+            Look in <span className="font-semibold text-ink">Spam</span> and <span className="font-semibold text-ink">Promotions</span>, or search your mail for{" "}
+            <span className="font-semibold text-ink">KNOT</span>. It comes from knotiitgn@gmail.com.
+          </li>
+          <li>
+            Found it in Spam? Tap <span className="font-semibold text-ink">Not spam</span>, so the next one lands in your inbox.
+          </li>
+          <li>Still nothing after a minute? Send a new code above.</li>
+        </ul>
+      </div>
+
       <p className="mt-6 text-center text-[14px] text-muted">
         Wrong email?{" "}
         <Link href="/" className="font-bold text-thread underline underline-offset-2">

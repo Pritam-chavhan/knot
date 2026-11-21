@@ -16,6 +16,16 @@ export function ChatsView({ data, now = new Date(), live = true, pushKey = null 
     <main className="px-5 pt-6">
       <h1 className="font-display text-[34px] leading-none font-extrabold">Chats</h1>
       <p className="mt-2 text-[15px] text-soft">People you&apos;ve connected with. Only the two of you can read a chat.</p>
+      <Link
+        href="/people"
+        className="mt-5 flex h-13 items-center gap-2.5 rounded-full border-[1.5px] border-line bg-card px-4 text-[15.5px] text-muted transition-transform active:scale-[0.99]"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="M16 16l4.5 4.5" />
+        </svg>
+        Find people to connect with
+      </Link>
       {pushKey && <NotificationsCard publicKey={pushKey} compact />}
 
       <Link

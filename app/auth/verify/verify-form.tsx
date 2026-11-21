@@ -62,7 +62,7 @@ function Resend({ email }: { email: string }) {
         {pending ? "Sending a new code…" : left > 0 ? `Send a new code in ${left}s` : "Send a new code"}
       </button>
       <p role="status" className="text-[13px] text-muted">
-        {state.error ?? (state.sent ? "New code sent. Use only the newest one." : "Codes can take a minute to arrive. Check spam too.")}
+        {state.error ?? (state.sent ? "New code sent. Use only the newest one." : "Codes can take a minute to arrive.")}
       </p>
     </form>
   );

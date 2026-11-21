@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { SetupNudge } from "@/features/notifications/setup-nudge";
+import { PeopleTeaser } from "@/features/people/people-teaser";
+import type { PersonCardData } from "@/features/people/directory-queries";
 import type { Profile } from "@/lib/auth";
 import { DayTimeline } from "@/components/art";
 import { Avatar } from "@/components/ui";
@@ -26,6 +28,7 @@ export function DiscoverView({
   category,
   live = 0,
   pushKey = null,
+  people = { list: [], count: 0 },
   now = new Date(),
 }: {
   profile: Pick<Profile, "id" | "display_name" | "role" | "avatar_path">;
@@ -34,6 +37,7 @@ export function DiscoverView({
   // People sharing their spot with everyone right now.
   live?: number;
   pushKey?: string | null;
+  people?: { list: PersonCardData[]; count: number };
   now?: Date;
 }) {
   const name = profile.display_name ?? "there";
@@ -70,6 +74,7 @@ export function DiscoverView({
       </header>
 
       <WhosAroundCard live={live} />
+      <PeopleTeaser people={people.list} count={people.count} />
       <SetupNudge publicKey={pushKey} />
 
       <h2 className="font-display mt-7 text-[24px] font-extrabold">What&apos;s on</h2>

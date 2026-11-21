@@ -122,6 +122,7 @@ More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 - **Who can join.** Any `iitgn.ac.in` address, including subdomains such as `caa.iitgn.ac.in`, with `iitgn.ac.in` fixed at the end so look-alike domains are refused. Shared office and club mailboxes are blocked.
 - **What students can write.** Events, attendance, join requests, connections, messages, blocks and reports only go through database functions that enforce capacity, approval, blocks and rate limits.
+- **People search.** Students can find each other by name, programme, batch or interest, and see "people you may know" ranked by shared interests, mutual connections, programme, batch and shared plans. Only active, set-up students at the same college appear, never anyone blocked either way, and search text is matched literally.
 - **Live map.** Opt-in for a set time, on and around campus (within 1.5 km of its centre), and you see others only while sharing yourself. Rough spots are rounded in the database, so the exact position never leaves it. One current spot per person, deleted when sharing ends.
 - **Private chats.** Only the two connected students can read a chat, live updates included. Admins never browse chats; they see a message only when someone reports it.
 - **What other students can see.** Names, programme, bio, photo and links. Never email addresses, last-seen times or roles.
