@@ -26,3 +26,12 @@ describe("map helpers", () => {
     expect(mapError({ message: "relation does not exist" })).toBe("That didn't work. Check your connection and try again.");
   });
 });
+
+describe("off-campus message", () => {
+  it("says how far, and how accurate the phone was", () => {
+    expect(mapError({ message: "off_campus:340" }, 62)).toBe(
+      "Your location shows about 340 m outside campus. Your phone's location is accurate to about 62 m. If you're on campus, step outside or near a window, wait a few seconds, then try again.",
+    );
+    expect(mapError({ message: "off_campus:21400" })).toMatch(/about 21.4 km outside campus/);
+  });
+});

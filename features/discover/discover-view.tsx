@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InstallPrompt } from "@/features/notifications/install-prompt";
 import type { Profile } from "@/lib/auth";
 import { DayTimeline } from "@/components/art";
 import { Avatar, ButtonLink } from "@/components/ui";
@@ -60,6 +61,8 @@ export function DiscoverView({
           <Avatar name={name} size={46} src={avatarSrc(profile.id, profile.avatar_path)} />
         </Link>
       </header>
+
+      <InstallPrompt />
 
       <Link
         href="/map"

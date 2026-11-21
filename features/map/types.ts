@@ -40,9 +40,15 @@ const MESSAGES: Record<string, string> = {
   already_waved: "You waved recently. Give them a moment.",
 };
 
-export function mapError(error: { message?: string } | null | undefined): string {
+export function mapError(error: { message?: string } | null | undefined, accuracy?: number): string {
   const msg = error?.message ?? "";
   if (msg.startsWith("rate_limited")) return "You're doing that a lot. Try again later.";
+  const off = msg.match(/off_campus:(\d+)/);
+  if (off) {
+    const m = Number(off[1]);
+    const acc = accuracy && Number.isFinite(accuracy) ? ` Your phone's location is accurate to about ${Math.round(accuracy)} m.` : "";
+    return `Your location shows about ${m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`} outside campus.${acc} If you're on campus, step outside or near a window, wait a few seconds, then try again.`;
+  }
   const key = Object.keys(MESSAGES).find((k) => msg.includes(k));
   return key ? MESSAGES[key] : "That didn't work. Check your connection and try again.";
 }

@@ -35,15 +35,32 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
   const [now, setNow] = useState(() => Date.now());
   const lastSent = useRef<{ at: number; lat: number; lng: number } | null>(null);
 
-  // Ask for a fresh, accurate position.
+  // Ask for an accurate position. The first reading is often rough (from
+  // Wi-Fi or mobile towers), so keep listening for up to 12 seconds and use
+  // the best one, stopping early once it's within 35 metres.
   const locate = () =>
     new Promise<Pos>((resolve, reject) => {
       if (!("geolocation" in navigator)) return reject(new Error("This browser can't share location."));
-      navigator.geolocation.getCurrentPosition(
-        (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
-        (e) => reject(new Error(geoError(e))),
-        { enableHighAccuracy: true, timeout: 20_000, maximumAge: 5_000 },
+      let best: Pos | null = null;
+      let done = false;
+      const finish = (err?: GeolocationPositionError) => {
+        if (done) return;
+        done = true;
+        navigator.geolocation.clearWatch(watch);
+        clearTimeout(timer);
+        if (best) resolve(best);
+        else reject(new Error(err ? geoError(err) : "Couldn't find your location. Check that location is on, then try again."));
+      };
+      const watch = navigator.geolocation.watchPosition(
+        (p) => {
+          const next = { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy };
+          if (!best || next.accuracy < best.accuracy) best = next;
+          if (next.accuracy <= 35) finish();
+        },
+        (e) => (e.code === e.PERMISSION_DENIED || !best ? finish(e) : undefined),
+        { enableHighAccuracy: true, timeout: 12_000, maximumAge: 0 },
       );
+      const timer = setTimeout(() => finish(), 12_000);
     });
 
   const refresh = useCallback(async () => {
@@ -103,8 +120,9 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
       const { data, error } = await supabase.rpc("update_location", { p_lat: p.lat, p_lng: p.lng, p_accuracy: Math.round(p.accuracy) });
       if (error) return;
       const r = data as { stopped?: string } & Partial<Sharing>;
-      if (r.stopped === "off_campus") ended("You left campus, so sharing stopped.");
+      if (r.stopped === "off_campus") ended("You've been off campus for a few minutes, so sharing stopped.");
       else if (r.stopped) ended("Sharing ended.");
+      else setNotice((data as { off_campus?: boolean }).off_campus ? "Your location looks off campus. You stay where you were on the map; sharing stops if it lasts 3 minutes." : null);
     };
 
     if ("geolocation" in navigator) {
@@ -162,7 +180,7 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
         p_visibility: visibility,
         p_precise: precise,
       });
-      if (error) throw new Error(mapError(error));
+      if (error) throw new Error(mapError(error, p.accuracy));
       lastSent.current = { at: Date.now(), lat: p.lat, lng: p.lng };
       setNow(Date.now());
       setSharing(data as Sharing);
@@ -333,7 +351,7 @@ function SharePanel({ busy, onStart }: { busy: boolean; onStart: (m: number, v: 
       </fieldset>
 
       <Button type="button" className="mt-4 w-full" disabled={busy} onClick={() => onStart(minutes, visibility, precise)}>
-        {busy ? "Finding you…" : "Share my spot"}
+        {busy ? "Getting an accurate location…" : "Share my spot"}
       </Button>
       <p className="mt-2 text-center text-[12.5px] text-muted">Campus only. Stops on its own, or when you leave campus. No history is kept.</p>
     </Panel>

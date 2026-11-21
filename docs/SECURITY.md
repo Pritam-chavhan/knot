@@ -44,7 +44,7 @@ Admin rights stop at the institution boundary.
 - **Opt-in, for a set time.** Sharing lasts 15, 30, 60 or 120 minutes and can be stopped at once. Stopping deletes the spot.
 - **You see others only while you share.** Nobody can watch the map without being on it.
 - **Your choice of audience and precision.** Everyone at IITGN, or connections only; an exact spot, or a rough area rounded to about 100 metres inside the database.
-- **Campus only.** Positions outside the campus outline (`institutions.map_bounds.polygon`, which follows IITGN and leaves out Palaj village and the farmland across the road) are refused, and leaving campus stops sharing. A college with no outline or box set can't share at all.
+- **Campus only.** Positions outside the campus outline (`institutions.map_bounds.polygon`, which follows IITGN between the river and the highway and leaves out Palaj village and nearby settlements) are refused. Because phone locations drift, a reading within its own stated accuracy of the edge (at least 50 m, never more than 200 m) counts as on campus and is pinned to the edge, so an off-campus home is never shown. Sharing stops if readings stay off campus for 3 minutes. A college with no outline or box set can't share at all.
 - **No history.** One current row per student, overwritten as they move (at most once every 10 seconds) and deleted when sharing ends or expires.
 - **Blocks and suspensions** hide people from each other on the map, both ways. Waves go only to people you can see, once per half hour, and are deleted after a day.
 - **Map tiles** come from OpenStreetMap. They show which part of campus a viewer is looking at, never where anyone is.

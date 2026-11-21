@@ -47,6 +47,25 @@ describe("sharing your spot", () => {
     await expect(start(asha, VILLAGE)).rejects.toThrow(/off_campus/);
   });
 
+  it("allows for phone accuracy near the edge, and pins the spot to the campus edge", async () => {
+    // About 55 m south of the southern edge (23.2045).
+    const nearGate = [23.204, 72.6855] as const;
+    await expect(run(asha, "select public.start_sharing($1, $2, 10, 30, 'campus', true)", [nearGate[0], nearGate[1]])).rejects.toThrow(/off_campus:5\d/);
+    await run(asha, "select public.start_sharing($1, $2, 80, 30, 'campus', true)", [nearGate[0], nearGate[1]]);
+    const { rows } = await db.query<{ lat: number }>("select lat from public.location_sessions where profile_id = $1", [asha]);
+    expect(rows[0].lat).toBeCloseTo(23.2045, 4);
+    await run(asha, "select public.stop_sharing()");
+  });
+
+  it("never allows more than 200 m, however rough the reading", async () => {
+    await expect(run(asha, "select public.start_sharing($1, $2, 5000, 30, 'campus', true)", [VILLAGE[0], VILLAGE[1]])).rejects.toThrow(/off_campus:\d{3}/);
+  });
+
+  it("covers campus land north along the river", async () => {
+    await start(asha, [23.219, 72.6895]);
+    await run(asha, "select public.stop_sharing()");
+  });
+
   it("only for 15, 30, 60 or 120 minutes, to connections or everyone", async () => {
     await expect(start(asha, ACAD, { minutes: 600 })).rejects.toThrow(/bad_duration/);
     await expect(start(asha, ACAD, { visibility: "world" })).rejects.toThrow(/bad_visibility/);
@@ -114,12 +133,30 @@ describe("seeing others", () => {
 });
 
 describe("moving and stopping", () => {
-  it("leaving campus stops sharing and deletes the spot", async () => {
+  it("one off-campus reading keeps the last spot; three minutes off campus stops sharing", async () => {
     await db.query("update public.location_sessions set updated_at = now() - interval '1 minute' where profile_id = $1", [ravi]);
-    const [{ r }] = await run<{ r: { stopped?: string } }>(ravi, "select public.update_location($1, $2, 10) r", [CITY[0], CITY[1]]);
-    expect(r.stopped).toBe("off_campus");
+    const [{ r }] = await run<{ r: { stopped?: string; off_campus?: boolean } }>(ravi, "select public.update_location($1, $2, 10) r", [CITY[0], CITY[1]]);
+    expect(r.stopped).toBeUndefined();
+    expect(r.off_campus).toBe(true);
+    expect((await people(asha)).map((p) => p.display_name)).toContain("Ravi");
+    const { rows } = await db.query<{ lat: number }>("select lat from public.location_sessions where profile_id = $1", [ravi]);
+    expect(rows[0].lat).toBe(HOSTEL[0]);
+
+    await db.query("update public.location_sessions set off_campus_since = now() - interval '4 minutes' where profile_id = $1", [ravi]);
+    const [{ r: r2 }] = await run<{ r: { stopped?: string } }>(ravi, "select public.update_location($1, $2, 10) r", [CITY[0], CITY[1]]);
+    expect(r2.stopped).toBe("off_campus");
     expect(await run(ravi, "select * from public.location_sessions")).toHaveLength(0);
     expect((await people(asha)).map((p) => p.display_name)).not.toContain("Ravi");
+  });
+
+  it("coming back on campus clears the off-campus timer", async () => {
+    await start(ravi, HOSTEL);
+    await run(ravi, "select public.update_location($1, $2, 10)", [CITY[0], CITY[1]]);
+    await run(ravi, "select public.update_location($1, $2, 10)", [ACAD[0], ACAD[1]]);
+    const { rows } = await db.query<{ off: string | null; lat: number }>("select off_campus_since off, lat from public.location_sessions where profile_id = $1", [ravi]);
+    expect(rows[0].off).toBeNull();
+    expect(rows[0].lat).toBe(ACAD[0]);
+    await run(ravi, "select public.stop_sharing()");
   });
 
   it("moves are limited to one every 10 seconds", async () => {
