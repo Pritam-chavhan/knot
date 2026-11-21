@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,13 +20,27 @@ export type Profile = {
   linkedin: string | null;
 };
 
+// The signed-in user's id, from the session token verified locally with the
+// project's public signing key. Once per request: the layout and the page share it.
+export const currentUserId = cache(async (): Promise<string | null> => {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  return typeof data?.claims?.sub === "string" ? data.claims.sub : null;
+});
+
 // Returns the signed-in student's profile, or sends them to the right place.
 export async function requireMember(options: { allowNotOnboarded?: boolean } = {}) {
+  const ctx = await loadMember();
+  if (!ctx.profile.onboarded_at && !options.allowNotOnboarded) redirect("/welcome");
+  return ctx;
+}
+
+// One sign-in check and one profile read per request, shared by the layout and the page.
+const loadMember = cache(async () => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/");
+  const id = await currentUserId();
+  if (!id) redirect("/");
+  const user = { id };
 
   // Your own full profile (email, role) comes from a function: classmates can
   // only read public profile fields.
@@ -41,10 +56,9 @@ export async function requireMember(options: { allowNotOnboarded?: boolean } = {
     await supabase.auth.signOut();
     redirect("/?error=suspended");
   }
-  // New students see the welcome tour first; it ends on the profile setup.
-  if (!profile.onboarded_at && !options.allowNotOnboarded) redirect("/welcome");
+  // New students see the welcome tour first (checked in requireMember).
   return { supabase, user, profile };
-}
+});
 
 export async function requireAdmin() {
   const ctx = await requireMember();

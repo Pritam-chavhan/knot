@@ -45,12 +45,13 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Verifies the session token locally with the project's public signing key
+  // (no network call), refreshing it first if it has expired.
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = !!data?.claims?.sub;
 
   const path = request.nextUrl.pathname;
-  if (!user && !PUBLIC_PATHS.includes(path)) {
+  if (!signedIn && !PUBLIC_PATHS.includes(path)) {
     const to = request.nextUrl.clone();
     to.pathname = "/";
     to.search = "";

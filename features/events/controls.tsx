@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useOptimistic } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui";
 import { avatarSrc } from "@/lib/avatar";
@@ -43,9 +43,16 @@ export function ParticipationButtons({
   full: boolean;
   disabled: boolean;
 }) {
-  const [state, action, pending] = useActionState<ActionState, FormData>(setParticipation, {});
-  const going = mine === "going";
-  const interested = mine === "interested";
+  // The buttons change the moment they're tapped; the server confirms in the
+  // background and they switch back with a message if it refuses.
+  const [shown, setShown] = useOptimistic(mine);
+  const [state, action] = useActionState<ActionState, FormData>(async (prev, fd) => {
+    const next = String(fd.get("state") ?? "");
+    setShown(next === "going" || next === "interested" ? next : null);
+    return setParticipation(prev, fd);
+  }, {});
+  const going = shown === "going";
+  const interested = shown === "interested";
   return (
     <form action={action}>
       <input type="hidden" name="eventId" value={eventId} />
@@ -55,7 +62,7 @@ export function ParticipationButtons({
           name="state"
           value={interested ? "" : "interested"}
           aria-pressed={interested}
-          disabled={disabled || pending}
+          disabled={disabled}
           className={`flex h-14 items-center justify-center gap-2 rounded-full text-[16px] font-bold transition-colors disabled:opacity-50 ${
             interested ? "bg-thread text-white" : "border-[1.5px] border-line bg-card text-ink hover:border-thread"
           }`}
@@ -67,7 +74,7 @@ export function ParticipationButtons({
           name="state"
           value={going ? "" : "going"}
           aria-pressed={going}
-          disabled={disabled || pending || (full && !going)}
+          disabled={disabled || (full && !going)}
           className={`flex h-14 items-center justify-center gap-2 rounded-full text-[16px] font-bold transition-colors disabled:opacity-50 ${
             going ? "bg-marigold text-ink" : "bg-ink text-white hover:bg-black"
           }`}
@@ -88,8 +95,12 @@ export function ParticipationButtons({
   );
 }
 
-export function VisibilitySwitch({ eventId, visible }: { eventId: string; visible: boolean }) {
-  const [state, action, pending] = useActionState<ActionState, FormData>(setParticipation, {});
+export function VisibilitySwitch({ eventId, visible: saved }: { eventId: string; visible: boolean }) {
+  const [visible, setVisible] = useOptimistic(saved);
+  const [state, action] = useActionState<ActionState, FormData>(async (prev, fd) => {
+    setVisible(fd.get("visible") === "on");
+    return setParticipation(prev, fd);
+  }, {});
   return (
     <form action={action} className="mt-3">
       <input type="hidden" name="eventId" value={eventId} />
@@ -100,7 +111,6 @@ export function VisibilitySwitch({ eventId, visible }: { eventId: string; visibl
         value={visible ? "off" : "on"}
         role="switch"
         aria-checked={visible}
-        disabled={pending}
         className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl bg-paper px-4 text-left text-[15px] font-semibold"
       >
         <span>

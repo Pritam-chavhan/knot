@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
+import { currentUserId } from "@/lib/auth";
 import type { ReactNode } from "react";
-import { createClient } from "@/lib/supabase/server";
 import { KnotMark, Logo } from "@/components/ui";
 import { DayTimeline, SafetyList } from "@/components/art";
 import { GoingDemo, HostDemo, MapDemo, PrivacyDemo } from "@/components/demos";
@@ -43,11 +43,7 @@ const DEMOS = [
 ];
 
 export default async function Landing({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) redirect("/discover");
+  if (await currentUserId()) redirect("/discover");
   const { error } = await searchParams;
 
   return (

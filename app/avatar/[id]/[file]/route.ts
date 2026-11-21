@@ -10,10 +10,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!UUID.test(id) || !FILE.test(file)) return notFound();
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return new Response(null, { status: 401, headers: { "Cache-Control": "no-store" } });
+  const { data: auth } = await supabase.auth.getClaims();
+  if (!auth?.claims?.sub) return new Response(null, { status: 401, headers: { "Cache-Control": "no-store" } });
 
   // Row-level security decides who can see this profile (members only,
   // nobody you've blocked or who blocked you).
@@ -21,12 +19,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const path = `${id}/${file}`;
   if (data?.avatar_path !== path) return notFound();
 
-  // Access is checked on every view (a removed photo, a block or a suspension
-  // takes effect at once). The browser keeps its copy and we answer
-  // "unchanged" without downloading it again.
+  // The phone reuses its copy for two minutes, then checks access again
+  // (a removed photo, a block or a suspension takes effect within two
+  // minutes) and gets "unchanged" without downloading it again.
   const etag = `"${file}"`;
   const cache = {
-    "Cache-Control": "private, no-cache",
+    "Cache-Control": "private, max-age=120",
     ETag: etag,
     Vary: "Cookie",
   };
