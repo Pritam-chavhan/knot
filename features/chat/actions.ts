@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireMember } from "@/lib/auth";
 import { chatError, REPORT_REASONS } from "./errors";
+import { notifyConnected, notifyConnectionRequest } from "@/features/notifications/send";
 
 export type ChatActionState = { error?: string; ok?: string };
 
@@ -18,15 +19,19 @@ function refreshPerson(id: string) {
 }
 
 export async function sendConnectionRequest(_prev: ChatActionState, fd: FormData): Promise<ChatActionState> {
-  const { supabase } = await requireMember();
+  const { supabase, profile } = await requireMember();
   const to = uuid.safeParse(fd.get("to"));
   if (!to.success) return AGAIN;
   const note = String(fd.get("note") ?? "").trim();
   if (note.length > 140) return { error: "Keep your note under 140 characters." };
   const { data, error } = await supabase.rpc("send_connection_request", { p_to: to.data, p_note: note || null });
   if (error) return { error: chatError(error) };
+  const result = data as { state: string; connection_id?: string };
+  const me = { id: profile.id, name: profile.display_name?.trim() || "A classmate" };
+  if (result.state === "connected" && result.connection_id) await notifyConnected(supabase, me, result.connection_id);
+  else await notifyConnectionRequest(supabase, me, to.data);
   refreshPerson(to.data);
-  return { ok: (data as { state: string }).state };
+  return { ok: result.state };
 }
 
 export async function cancelConnectionRequest(_prev: ChatActionState, fd: FormData): Promise<ChatActionState> {
@@ -40,7 +45,7 @@ export async function cancelConnectionRequest(_prev: ChatActionState, fd: FormDa
 }
 
 export async function respondConnectionRequest(_prev: ChatActionState, fd: FormData): Promise<ChatActionState> {
-  const { supabase } = await requireMember();
+  const { supabase, profile } = await requireMember();
   const request = uuid.safeParse(fd.get("request"));
   const from = uuid.safeParse(fd.get("from"));
   const accept = fd.get("accept") === "1";
@@ -49,6 +54,7 @@ export async function respondConnectionRequest(_prev: ChatActionState, fd: FormD
   if (error) return { error: chatError(error) };
   refreshPerson(from.data);
   const result = data as { state: string; connection_id?: string };
+  if (result.connection_id) await notifyConnected(supabase, { id: profile.id, name: profile.display_name?.trim() || "A classmate" }, result.connection_id);
   if (result.connection_id && fd.get("open") === "1") redirect(`/chats/${result.connection_id}`);
   return { ok: result.state };
 }

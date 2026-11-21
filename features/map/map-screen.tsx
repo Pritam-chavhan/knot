@@ -8,6 +8,7 @@ import { BackButton } from "@/components/back-button";
 import { browserClient } from "@/lib/supabase/browser";
 import { avatarSrc } from "@/lib/avatar";
 import { formatClock } from "@/lib/time";
+import { afterWaveSent } from "@/features/notifications/actions";
 import { ago, DURATIONS, geoError, mapError, metres, minutesLeft, type Bounds, type MapPerson, type Sharing, type Wave } from "./types";
 
 const CampusMap = dynamic(() => import("./campus-map"), {
@@ -182,7 +183,9 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
 
   async function wave(id: string) {
     const { error } = (await browserClient()?.rpc("send_wave", { p_to: id })) ?? { error: { message: "" } };
-    return error ? mapError(error) : null;
+    if (error) return mapError(error);
+    void afterWaveSent(id).catch(() => {});
+    return null;
   }
 
   if (!bounds) {

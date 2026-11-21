@@ -7,6 +7,7 @@ import { BackButton } from "@/components/back-button";
 import { browserClient } from "@/lib/supabase/browser";
 import { chatDay, formatClock, istDayKey } from "@/lib/time";
 import { chatError } from "./errors";
+import { afterMessageSent } from "@/features/notifications/actions";
 import { PersonMenu } from "./person-menu";
 import { ReportForm } from "./report-form";
 import { Sheet } from "./sheet";
@@ -118,6 +119,8 @@ export function ChatThread({ connectionId, me, other, initial }: Props) {
       return;
     }
     const sent = data as { id: string; created_at: string };
+    // Let the other person's phones know (only who it's from, never the text).
+    void afterMessageSent(sent.id).catch(() => {});
     setMessages((list) => list.map((m) => (m.id === id ? { ...m, pending: false, failed: undefined, created_at: sent.created_at } : m)).sort(sortByTime));
   }
 

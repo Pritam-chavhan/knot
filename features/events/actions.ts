@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin, requireMember } from "@/lib/auth";
 import { adminEditSchema, adminEventSchema, endsAtFrom, hostEventSchema } from "./validation";
 import { friendlyError } from "./errors";
+import { notifyJoinAccepted, notifyJoinRequest } from "@/features/notifications/send";
 
 export type ActionState = { error?: string; ok?: string; field?: string; values?: Record<string, string> };
 
@@ -37,13 +38,14 @@ export async function setParticipation(_prev: ActionState, formData: FormData): 
 }
 
 export async function requestToJoin(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { supabase } = await requireMember();
+  const { supabase, profile } = await requireMember();
   const eventId = id.safeParse(formData.get("eventId"));
   if (!eventId.success) return { error: "That didn't work. Reload and try again." };
   const note = String(formData.get("note") ?? "").trim();
   if (note.length > 280) return { error: "Keep your note under 280 characters." };
   const { error } = await supabase.rpc("request_to_join", { p_event_id: eventId.data, p_note: note || null });
   if (error) return { error: friendlyError(error) };
+  await notifyJoinRequest(supabase, { id: profile.id, name: profile.display_name?.trim() || "A classmate" }, eventId.data);
   refresh(eventId.data);
   return { ok: "requested" };
 }
@@ -59,13 +61,14 @@ export async function withdrawRequest(_prev: ActionState, formData: FormData): P
 }
 
 export async function respondToRequest(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { supabase } = await requireMember();
+  const { supabase, profile } = await requireMember();
   const requestId = id.safeParse(formData.get("requestId"));
   const eventId = id.safeParse(formData.get("eventId"));
   if (!requestId.success || !eventId.success) return { error: "That didn't work. Reload and try again." };
   const accept = formData.get("accept") === "yes";
   const { error } = await supabase.rpc("respond_join_request", { p_request_id: requestId.data, p_accept: accept });
   if (error) return { error: friendlyError(error) };
+  if (accept) await notifyJoinAccepted(supabase, { id: profile.id, name: profile.display_name?.trim() || "A classmate" }, requestId.data);
   refresh(eventId.data);
   return { ok: accept ? "accepted" : "declined" };
 }

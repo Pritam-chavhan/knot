@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCsp } from "@/lib/security/csp";
 
-const PUBLIC_PATHS = ["/", "/auth/verify", "/auth/callback", "/privacy", "/terms"];
+const PUBLIC_PATHS = ["/", "/install", "/auth/verify", "/auth/callback", "/privacy", "/terms"];
 
 // Runs on every page request:
 // 1. sets a fresh Content Security Policy nonce,
@@ -62,6 +62,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api/ingest/|_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.webmanifest|robots.txt|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2)$).*)",
+    "/((?!api/ingest/|_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.webmanifest|sw.js|robots.txt|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2)$).*)",
   ],
 };

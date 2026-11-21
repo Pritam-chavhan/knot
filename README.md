@@ -11,7 +11,7 @@ Every event at IIT Gandhinagar, who's going, and an easy way to go together.
 [![CI](https://github.com/Pritam-chavhan/knot/actions/workflows/ci.yml/badge.svg)](https://github.com/Pritam-chavhan/knot/actions/workflows/ci.yml)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-17142B)
 ![Postgres with row-level security](https://img.shields.io/badge/Postgres-row--level%20security-5A3DF0)
-![213 tests](https://img.shields.io/badge/tests-213%20passing-0A7568)
+![221 tests](https://img.shields.io/badge/tests-221%20passing-0A7568)
 ![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2%20AA-FFB020)
 
 [**Open the app**](https://knot-tau.vercel.app) · [Architecture](docs/ARCHITECTURE.md) · [Security model](docs/SECURITY.md) · [Email feed](docs/EMAIL_FEED.md) · [Engineering rules](docs/ENGINEERING.md)
@@ -38,6 +38,8 @@ KNOT turns that inbox into one live feed of what's on, shows how many people are
 | **Connect and chat** | Tap Connect on anyone's profile, with an optional note. Once they accept, you have a private one-to-one chat that updates live, with unread counts on the Chats tab. Nobody is told they were declined. |
 | **Plan requests** | Requests to join your plans, replies to yours, and what starts in the next 24 hours, at the top of Chats. |
 | **Who's around** | A live campus map. Share your spot for 15 minutes to 2 hours, with everyone at IITGN or just your connections, exactly or as a rough area. You see others only while you share too. Tap a photo to wave. Sharing only works on campus, stops when you leave, and no history is kept. |
+| **Notifications** | Turn them on once per phone to hear about messages, connection requests, people joining your plans and waves. They show who it's from, never what was written, and don't buzz for a chat that's already open. |
+| **Add to home screen** | A short guide at [/install](https://knot-tau.vercel.app/install) puts KNOT on Android and iPhone home screens, so it opens like an app. Android gets a one-tap Install button. |
 | **Block and report** | Block anyone from their profile or your chat: you disappear from each other everywhere and they aren't told. Report a profile, a message or an event in a few taps. |
 | **Profiles** | An optional photo with a crop screen, a short bio, interests, and GitHub, Instagram and LinkedIn. Tap anyone's name to see their profile, the interests you share and the plans they're part of. |
 | **Privacy by default** | College email only. Names hidden until a student opts in. Blocks hide people from each other everywhere. |
@@ -133,7 +135,7 @@ Each of these rules is enforced in the database and covered by a test. Full deta
 
 | Check | Result |
 |---|---|
-| Unit and database security tests (Vitest, in-process Postgres) | 206 passing |
+| Unit and database security tests (Vitest, in-process Postgres) | 214 passing |
 | Browser tests (Playwright) with accessibility scans (axe) | 7 passing |
 | Lighthouse, landing page on a phone | Performance 96 · Accessibility 100 · Best practices 100 · SEO 100 |
 | Accessibility | WCAG 2.2 AA, 44 px touch targets, keyboard and screen reader friendly |
@@ -147,6 +149,7 @@ CI runs lint, type checks, all tests, a dependency audit, a production build and
 - **Data:** Supabase (Postgres with row-level security, Auth, Storage, Realtime)
 - **AI:** Google Gemini API for reading campus mail, with the Anthropic API as a drop-in alternative
 - **Map:** Leaflet with OpenStreetMap tiles, loaded only on the map page
+- **Notifications:** Web Push with a service worker; the server creates and keeps its own signing keys
 - **Images:** sharp, for server-side re-encoding of profile photos
 - **Validation:** Zod
 - **Testing:** Vitest with PGlite for database tests, Playwright with axe-core for browser tests
@@ -217,6 +220,7 @@ To connect campus mail, follow [docs/EMAIL_FEED.md](docs/EMAIL_FEED.md).
 - [x] Connection requests and live one-to-one chat between connected students
 - [x] Block and report everywhere, with a Reports queue in the dashboard
 - [x] Opt-in live campus map: share where you are for a set time, stop anytime, no history kept
+- [x] Push notifications and an install guide for Android and iPhone
 - [ ] Privacy policy and terms pages, a custom domain and a branded sign-in email
 
 ## Author

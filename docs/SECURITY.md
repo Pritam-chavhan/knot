@@ -49,6 +49,13 @@ Admin rights stop at the institution boundary.
 - **Blocks and suspensions** hide people from each other on the map, both ways. Waves go only to people you can see, once per half hour, and are deleted after a day.
 - **Map tiles** come from OpenStreetMap. They show which part of campus a viewer is looking at, never where anyone is.
 
+## Notifications
+
+- **Opt-in per phone.** A phone's push subscription is saved only when the student turns notifications on, at most 10 phones each, and removed when they turn them off or the browser drops it.
+- **Nothing private on a lock screen.** Notifications say who and what kind (a message, a request, a wave), never message text.
+- **The database picks the recipient.** Who gets notified always comes from the message, request or wave in the database, checked as the sender; a tap can't aim a notification at anyone else. Each event notifies once.
+- **Signing keys** are created by the server on first use and stored where only the server can read them.
+
 ## Photos and links
 
 - **Upload checks.** Uploads are checked by their first bytes, limited in size and pixel count, and processed one at a time.

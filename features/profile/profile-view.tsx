@@ -10,6 +10,7 @@ import { avatarSrc } from "@/lib/avatar";
 import { signOut } from "@/features/auth/actions";
 import { FEEDBACK_EMAIL, feedbackHref } from "@/lib/contact";
 import { BlockedList } from "@/features/chat/blocked-list";
+import { NotificationsCard } from "@/features/notifications/notifications-card";
 
 const DELETE_MESSAGES: Record<string, string> = {
   confirm: "Type DELETE in capitals to confirm.",
@@ -22,11 +23,13 @@ export function ProfileView({
   profile,
   data,
   blocked = [],
+  pushKey = null,
   deleteState,
 }: {
   profile: Profile;
   data: FormData;
   blocked?: { profile_id: string; display_name: string | null }[];
+  pushKey?: string | null;
   deleteState?: string;
 }) {
   const name = profile.display_name ?? "You";
@@ -85,6 +88,7 @@ export function ProfileView({
       />
 
       <h2 className="font-display mt-8 mb-3 text-[20px] font-extrabold">Privacy</h2>
+      {pushKey && <NotificationsCard publicKey={pushKey} />}
       <PrivacyForm showGoing={data.showGoing} allowRequests={data.allowRequests} />
       <BlockedList people={blocked} />
 
@@ -97,6 +101,12 @@ export function ProfileView({
             </svg>
           </Link>
         )}
+        <Link href="/install" className="flex items-center justify-between rounded-[24px] bg-card px-5 py-4">
+          <span className="font-bold">Add KNOT to your home screen</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </Link>
         <Link href="/welcome" className="flex items-center justify-between rounded-[24px] bg-card px-5 py-4">
           <span className="font-bold">How KNOT works</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

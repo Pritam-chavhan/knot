@@ -4,17 +4,19 @@ import { avatarSrc } from "@/lib/avatar";
 import { chatTime } from "@/lib/time";
 import { RequestButtons } from "./connect-controls";
 import { LiveChats } from "./live-chats";
+import { NotificationsCard } from "@/features/notifications/notifications-card";
 import type { loadChats } from "./queries";
 
 type Data = Awaited<ReturnType<typeof loadChats>>;
 
-export function ChatsView({ data, now = new Date(), live = true }: { data: Data; now?: Date; live?: boolean }) {
+export function ChatsView({ data, now = new Date(), live = true, pushKey = null }: { data: Data; now?: Date; live?: boolean; pushKey?: string | null }) {
   const { chats, requests, planRequests } = data;
 
   return (
     <main className="px-5 pt-6">
       <h1 className="font-display text-[34px] leading-none font-extrabold">Chats</h1>
       <p className="mt-2 text-[15px] text-soft">People you&apos;ve connected with. Only the two of you can read a chat.</p>
+      {pushKey && <NotificationsCard publicKey={pushKey} compact />}
 
       <Link
         href="/activity"
