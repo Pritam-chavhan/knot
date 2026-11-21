@@ -8,6 +8,7 @@ import { PhotoPicker } from "@/features/profile/photo-picker";
 import { ProfileLinks } from "@/features/profile/profile-links";
 import { avatarSrc } from "@/lib/avatar";
 import { signOut } from "@/features/auth/actions";
+import { BlockedList } from "@/features/chat/blocked-list";
 
 const DELETE_MESSAGES: Record<string, string> = {
   confirm: "Type DELETE in capitals to confirm.",
@@ -16,7 +17,17 @@ const DELETE_MESSAGES: Record<string, string> = {
 
 type FormData = { interests: { id: number; name: string }[]; interestIds: number[]; showGoing: boolean; allowRequests: boolean };
 
-export function ProfileView({ profile, data, deleteState }: { profile: Profile; data: FormData; deleteState?: string }) {
+export function ProfileView({
+  profile,
+  data,
+  blocked = [],
+  deleteState,
+}: {
+  profile: Profile;
+  data: FormData;
+  blocked?: { profile_id: string; display_name: string | null }[];
+  deleteState?: string;
+}) {
   const name = profile.display_name ?? "You";
   const myInterests = data.interests.filter((i) => data.interestIds.includes(i.id));
   const photo = avatarSrc(profile.id, profile.avatar_path);
@@ -74,6 +85,7 @@ export function ProfileView({ profile, data, deleteState }: { profile: Profile; 
 
       <h2 className="font-display mt-8 mb-3 text-[20px] font-extrabold">Privacy</h2>
       <PrivacyForm showGoing={data.showGoing} allowRequests={data.allowRequests} />
+      <BlockedList people={blocked} />
 
       <div className="mt-8 flex flex-col gap-3">
         {profile.role === "admin" && (

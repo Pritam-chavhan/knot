@@ -126,3 +126,30 @@ export async function loadInbox(supabase: SupabaseClient) {
   const [rows, stats] = await Promise.all([supabase.rpc("admin_inbox", { p_limit: 60 }), supabase.rpc("admin_inbox_stats")]);
   return { rows: (rows.data ?? []) as InboxRow[], stats: (stats.data ?? null) as InboxStats | null };
 }
+
+export type ReportRow = {
+  id: string;
+  created_at: string;
+  target_type: "profile" | "message" | "event";
+  target_id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  resolution: "dismissed" | "suspended" | "event_hidden" | null;
+  resolved_at: string | null;
+  snapshot: Record<string, unknown> | null;
+  reporter_id: string;
+  reporter_name: string | null;
+  subject_id: string | null;
+  subject_name: string | null;
+  subject_status: "active" | "suspended" | null;
+  subject_protected: boolean;
+  subject_open_reports: number;
+  event_hidden: boolean | null;
+};
+
+export async function loadReports(supabase: SupabaseClient, open: boolean) {
+  const { data, error } = await supabase.rpc("admin_reports", { p_open: open, p_limit: 100 });
+  if (error) throw new Error("reports_failed");
+  return (data ?? []) as ReportRow[];
+}

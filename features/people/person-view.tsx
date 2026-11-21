@@ -4,11 +4,14 @@ import { BackButton } from "@/components/back-button";
 import { ProfileLinks } from "@/features/profile/profile-links";
 import { avatarSrc } from "@/lib/avatar";
 import { whenLabel } from "@/lib/time";
+import { ConnectControls } from "@/features/chat/connect-controls";
+import { PersonMenu } from "@/features/chat/person-menu";
+import type { Relationship } from "@/features/chat/queries";
 import type { loadPerson, PlanRow } from "./queries";
 
 type Data = NonNullable<Awaited<ReturnType<typeof loadPerson>>>;
 
-export function PersonView({ data }: { data: Data }) {
+export function PersonView({ data, relationship }: { data: Data; relationship: Relationship }) {
   const { person: p, isMe, interests, hosting, going } = data;
   const name = p.display_name ?? "Student";
   const first = name.split(" ")[0];
@@ -18,10 +21,17 @@ export function PersonView({ data }: { data: Data }) {
     <main className="px-5 pt-5">
       <div className="flex items-center justify-between">
         <BackButton />
-        {isMe && (
+        {isMe ? (
           <Link href="/profile" className="flex min-h-11 items-center rounded-full bg-card px-4 text-[14px] font-bold text-thread-deep transition-transform active:scale-95">
             Edit profile
           </Link>
+        ) : (
+          <PersonMenu
+            person={{ id: p.id, name }}
+            reportTarget={{ type: "profile", id: p.id }}
+            connected={relationship.state === "connected"}
+            from="profile"
+          />
         )}
       </div>
 
@@ -41,6 +51,12 @@ export function PersonView({ data }: { data: Data }) {
         <ProfileLinks profile={p} tone="dark" />
         {(p.github || p.instagram || p.linkedin) && <p className="relative mt-3 text-[12px] text-white/60">Links are added by {isMe ? "you" : first} and not verified by KNOT.</p>}
       </section>
+
+      {!isMe && (
+        <div className="mt-4">
+          <ConnectControls person={{ id: p.id, name }} relationship={relationship} />
+        </div>
+      )}
 
       {interests.length > 0 && (
         <section className="mt-4 rounded-[28px] bg-card p-5" aria-labelledby="int-h">

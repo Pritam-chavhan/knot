@@ -12,6 +12,9 @@ const MESSAGES: Record<string, string> = {
   not_found: "That account or event no longer exists.",
   not_allowed: "Only admins can do that.",
   protected_admin: "Only the founder can suspend or demote another admin, and the founder can't be changed.",
+  already_resolved: "Someone already dealt with this report.",
+  no_person: "There's no one to suspend on this report.",
+  bad_action: "That action doesn't fit this report.",
 };
 const friendly = (m?: string) => MESSAGES[Object.keys(MESSAGES).find((k) => m?.includes(k)) ?? ""] ?? "That didn't work. Try again.";
 
@@ -68,4 +71,26 @@ export async function resolveProposal(_prev: AdminActionState, fd: FormData): Pr
   if (error) return { error: error.message.includes("not_found") ? "Already handled." : friendly(error.message) };
   revalidatePath("/", "layout");
   return { ok: choice.data === "apply" ? "Change applied." : "Dismissed." };
+}
+
+export async function resolveReport(_prev: AdminActionState, fd: FormData): Promise<AdminActionState> {
+  const { supabase } = await requireAdmin();
+  const report = id.safeParse(fd.get("reportId"));
+  const action = z.enum(["dismiss", "suspend_user", "hide_event"]).safeParse(fd.get("action"));
+  if (!report.success || !action.success) return { error: "That didn't work. Reload and try again." };
+  const note = String(fd.get("note") ?? "").slice(0, 280);
+  const { error } = await supabase.rpc("admin_resolve_report", { p_report: report.data, p_action: action.data, p_note: note || null });
+  if (error) return { error: friendly(error.message) };
+
+  if (action.data === "suspend_user") {
+    // End their sessions now. The person comes from the report itself, never from the form.
+    const { data: r } = await supabase.from("reports").select("subject_id").eq("id", report.data).single<{ subject_id: string | null }>();
+    if (r?.subject_id) {
+      const { error: banError } = await createAdminClient().auth.admin.updateUserById(r.subject_id, { ban_duration: "876000h" });
+      if (banError) return { error: "Suspended, but their current session couldn't be ended. It ends within an hour." };
+    }
+  }
+  revalidatePath("/admin", "layout");
+  revalidatePath("/", "layout");
+  return { ok: { dismiss: "Dismissed.", suspend_user: "Suspended. Their open reports are closed.", hide_event: "Event hidden from students." }[action.data] };
 }

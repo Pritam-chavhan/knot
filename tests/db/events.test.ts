@@ -74,7 +74,7 @@ describe("event feed", () => {
 
   it("hides a blocked host's plans and blocked people's names", async () => {
     const id = await hostPlan({ title: "Late night chai" });
-    await as(db, c, () => db.query("insert into public.blocks (blocker_id, blocked_id) values ($1, $2)", [c, host]));
+    await as(db, c, () => db.query("select public.block_profile($1)", [host]));
     expect((await feed(c)).some((r) => r.id === id)).toBe(false);
     expect((await feed(a)).some((r) => r.id === id)).toBe(true);
     await expect(setState(c, id, "going")).rejects.toThrow(/not_found/);
@@ -224,7 +224,7 @@ describe("security review fixes", () => {
   });
 
   it("nobody can check whether two other people blocked each other", async () => {
-    await as(db, b, () => db.query("insert into public.blocks (blocker_id, blocked_id) values ($1, $2)", [b, c]));
+    await as(db, b, () => db.query("select public.block_profile($1)", [c]));
     const r = await as(db, a, async () => (await db.query<{ x: boolean }>("select public.is_blocked_between($1, $2) as x", [b, c])).rows[0].x);
     expect(r).toBe(false);
     await db.query("delete from public.blocks where blocker_id = $1", [b]);

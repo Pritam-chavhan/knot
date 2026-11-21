@@ -30,7 +30,14 @@ Admin rights stop at the institution boundary.
 - **Database functions** carry every write with rules attached (capacity, approval, admin actions). They lock the row, check the caller and log admin actions in the same transaction.
 - **The audit log** is append-only: a trigger refuses edits and deletes, even from the server.
 - **Attendance visibility** is off by default. Counts include everyone; names appear only for students who opt in.
-- **Blocks** hide people from each other in profiles, feeds, attendee lists, requests and chats, in both directions.
+- **Blocks** hide people from each other in profiles, feeds, attendee lists, requests and chats, in both directions. The blocked person isn't told.
+
+## Connections and chat
+
+- **Requests** go only to active classmates at the same college who accept requests, at most 20 a day. A declined request keeps looking "sent" to the sender for 30 days, so nobody learns they were turned down and nobody can ask again and again.
+- **Chats** exist only between two connected students. Only they can read it, including through live updates. Messages are limited to 2,000 characters and 60 per five minutes.
+- **Blocking** closes the chat for both people but keeps it, hidden, so it can still be reported. Removing a connection deletes the chat for both.
+- **Reports** save what was reported at that moment: the profile, the event, or the message and up to 20 messages before it. Admins see a chat only through a report; they can't browse chats. Acting on a report (suspending someone or hiding an event) closes every open report about the same person or event and is written to the audit log.
 
 ## Photos and links
 

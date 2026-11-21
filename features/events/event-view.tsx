@@ -5,6 +5,7 @@ import { avatarSrc } from "@/lib/avatar";
 import { dayLabel, formatClock } from "@/lib/time";
 import { SOURCE_TAG, categoryLabel } from "@/features/events/categories";
 import type { loadEvent } from "@/features/events/queries";
+import { ReportEventButton } from "@/features/chat/report-button";
 import { HostPanel, JoinRequest, ParticipationButtons, VisibilitySwitch } from "./controls";
 
 const TINT = { official: "bg-thread-tint", community: "bg-river-tint", student_hosted: "bg-marigold-tint" } as const;
@@ -162,6 +163,12 @@ export function EventView({ data, userId, isNew }: { data: EventData; userId: st
           </p>
         )}
       </section>
+      {!isHost && (
+        <ReportEventButton
+          eventId={e.id}
+          host={e.source_type === "student_hosted" && host ? { id: host.id, name: host.display_name ?? "the host" } : null}
+        />
+      )}
     </main>
   );
 }

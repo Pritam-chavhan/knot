@@ -50,3 +50,21 @@ export function startsIn(d: Date, now = new Date()): string {
   const hours = Math.round(mins / 60);
   return `in ${hours} h`;
 }
+
+// For chat lists: "6:30 pm" today, then "Yesterday", a weekday this week,
+// or "16 Nov".
+export function chatTime(d: Date, now = new Date()): string {
+  const day = istDayKey(d);
+  if (day === istDayKey(now)) return formatClock(d);
+  if (day === istDayKey(new Date(now.getTime() - 86_400_000))) return "Yesterday";
+  if (now.getTime() - d.getTime() < 6 * 86_400_000) return new Intl.DateTimeFormat("en-IN", { timeZone: TZ, weekday: "short" }).format(d);
+  return new Intl.DateTimeFormat("en-IN", { timeZone: TZ, day: "numeric", month: "short" }).format(d);
+}
+
+// For day breaks inside a chat: "Today", "Yesterday", "Mon, 16 Nov".
+export function chatDay(d: Date, now = new Date()): string {
+  const day = istDayKey(d);
+  if (day === istDayKey(now)) return "Today";
+  if (day === istDayKey(new Date(now.getTime() - 86_400_000))) return "Yesterday";
+  return new Intl.DateTimeFormat("en-IN", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" }).format(d);
+}

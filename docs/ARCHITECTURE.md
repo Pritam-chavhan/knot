@@ -35,7 +35,7 @@ sequenceDiagram
 | Input shape and limits | Zod schemas on the server, then database check constraints |
 | Page security headers | `lib/security/csp.ts`, applied by middleware |
 
-Students never insert or update events, attendance or join requests directly. They call functions such as `set_my_participation`, `request_to_join` and `create_hosted_event` (see `supabase/migrations/20261120030000_events_day2.sql`).
+Students never insert or update events, attendance, join requests, connections, messages, blocks or reports directly. They call functions such as `set_my_participation`, `request_to_join`, `send_connection_request`, `send_message` and `file_report` (see `supabase/migrations/`).
 
 ## The service key
 
@@ -57,6 +57,7 @@ Each feature keeps its data access, server actions and UI together under `featur
 | `events` | Feed and event queries, Going and Interested, hosting, join requests, the event page |
 | `ingest` | Email feed: AI extraction (`extract.ts`), decision rules (`decide.ts`), processing (`process.ts`) |
 | `admin` | Dashboard stats and chart, Inbox, people, events, audit log |
+| `chat` | Connect, the Chats tab, live one-to-one chat, blocking and reports |
 | `profile`, `people` | Your profile, photo upload and crop, links, classmates' profiles |
 | `plans`, `activity` | The Plans and Activity tabs |
 | `auth`, `discover` | Sign-in validation, the Discover screen |
@@ -64,6 +65,8 @@ Each feature keeps its data access, server actions and UI together under `featur
 ## Live updates
 
 The `events` table is published to Supabase Realtime. Discover subscribes as the signed-in student, so row-level security decides which changes each student receives. A new or newly approved event shows a "new events" pill; changes to events already on screen refresh quietly, at most every 30 seconds.
+
+Messages are published too. An open chat adds new messages as they arrive, and sends with an id made on the phone, so a retry after a dropped connection never creates a duplicate. The Chats list refreshes when any of your chats gets a message. Row-level security means each student only ever receives their own chats.
 
 ## Profile photos
 

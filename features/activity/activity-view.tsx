@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui";
+import { BackButton } from "@/components/back-button";
 import { RequestRow } from "@/features/events/controls";
 import { dayLabel, formatClock, startsIn, whenLabel } from "@/lib/time";
 import type { loadActivity, ReviewItem } from "./queries";
@@ -24,8 +25,9 @@ export function ActivityView({ data, now = new Date() }: { data: Data; now?: Dat
 
   return (
     <main className="px-5 pt-6">
-      <h1 className="font-display text-[34px] leading-none font-extrabold">Activity</h1>
-      <p className="mt-2 text-[15px] text-soft">Requests to review, replies to yours and what&apos;s coming up.</p>
+      <BackButton fallback="/chats" />
+      <h1 className="font-display mt-4 text-[34px] leading-none font-extrabold">Plan requests</h1>
+      <p className="mt-2 text-[15px] text-soft">Requests to join your plans, replies to yours and what&apos;s coming up.</p>
 
       {soon.length > 0 && (
         <section className="mt-6" aria-labelledby="soon-h">

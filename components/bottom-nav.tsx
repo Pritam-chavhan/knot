@@ -19,10 +19,10 @@ const TABS: Tab[] = [
     icon: <><rect x="3.5" y="5" width="17" height="15.5" rx="4" /><path d="M3.5 10h17M8.5 3v4M15.5 3v4M8 14.5l2 2 4-4" /></>,
   },
   {
-    href: "/activity",
-    label: "Activity",
-    match: (p) => p.startsWith("/activity"),
-    icon: <><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" /><path d="M10 20.5a2.2 2.2 0 0 0 4 0" /></>,
+    href: "/chats",
+    label: "Chats",
+    match: (p) => p.startsWith("/chats") || p.startsWith("/activity"),
+    icon: <path d="M20 11.5c0 4.1-3.6 7.5-8 7.5-1.2 0-2.3-.2-3.3-.6L4 19.5l1.2-3.6A7.2 7.2 0 0 1 4 11.5C4 7.4 7.6 4 12 4s8 3.4 8 7.5z" />,
   },
   {
     href: "/profile",
@@ -43,11 +43,14 @@ function Icon({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function BottomNav({ activityCount = 0 }: { activityCount?: number }) {
-  return <BottomNavView path={usePathname()} activityCount={activityCount} />;
+export function BottomNav({ chatsCount = 0 }: { chatsCount?: number }) {
+  const path = usePathname();
+  // A chat has its own message box at the bottom instead.
+  if (/^\/chats\/[^/]+/.test(path)) return null;
+  return <BottomNavView path={path} chatsCount={chatsCount} />;
 }
 
-export function BottomNavView({ path, activityCount = 0 }: { path: string; activityCount?: number }) {
+export function BottomNavView({ path, chatsCount = 0 }: { path: string; chatsCount?: number }) {
   const hosting = path.startsWith("/host");
   const active = SLOTS.findIndex((t) => t?.match(path));
 
@@ -100,15 +103,15 @@ export function BottomNavView({ path, activityCount = 0 }: { path: string; activ
                 >
                   <span className="relative transition-transform duration-200 group-active:scale-90 motion-reduce:transition-none">
                     <Icon>{t.icon}</Icon>
-                    {t.href === "/activity" && activityCount > 0 && (
+                    {t.href === "/chats" && chatsCount > 0 && (
                       <span className="absolute -top-1.5 -right-2.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose px-1 text-[11px] leading-none font-extrabold text-ink ring-2 ring-ink">
-                        {activityCount > 9 ? "9+" : activityCount}
+                        {chatsCount > 9 ? "9+" : chatsCount}
                       </span>
                     )}
                   </span>
                   <span className="text-[11.5px] leading-none font-bold">{t.label}</span>
-                  {t.href === "/activity" && activityCount > 0 && (
-                    <span className="sr-only">, {activityCount === 1 ? "1 request to review" : `${activityCount} requests to review`}</span>
+                  {t.href === "/chats" && chatsCount > 0 && (
+                    <span className="sr-only">, {chatsCount === 1 ? "1 new" : `${chatsCount} new`}</span>
                   )}
                 </Link>
               </li>

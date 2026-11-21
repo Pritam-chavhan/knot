@@ -110,3 +110,15 @@ body {
     animation: none !important;
   }
 }
+
+/* Bottom sheets slide up once, when opened. */
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

@@ -52,7 +52,9 @@ export function OverviewView({ s }: { s: Stats }) {
       <section aria-labelledby="safety-h" className="mt-6 mb-6">
         <h2 id="safety-h" className="font-display text-[20px] font-extrabold">Safety</h2>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <Tile value={s.open_reports} label="Open reports" sub="Report handling arrives on Day 3" />
+          <Link href="/admin/reports" className="rounded-[22px] transition-transform active:scale-[0.98]">
+            <Tile value={s.open_reports} label="Open reports" sub={s.open_reports > 0 ? "Review them in Reports" : "Nothing to review"} accent={s.open_reports > 0} />
+          </Link>
           <Tile value={s.suspended} label="Suspended accounts" />
         </div>
       </section>

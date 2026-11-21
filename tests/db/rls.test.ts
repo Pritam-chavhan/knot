@@ -221,7 +221,7 @@ describe("blocking", () => {
         [eventId],
       ),
     );
-    await as(db, meera, () => db.query("insert into public.blocks (blocker_id, blocked_id) values ($1, $2)", [meera, ravi]));
+    await as(db, meera, () => db.query("select public.block_profile($1)", [ravi]));
     expect(await as(db, meera, () => count("select count(*) n from public.profiles where id = $1", [ravi]))).toBe(0);
     expect(await as(db, ravi, () => count("select count(*) n from public.profiles where id = $1", [meera]))).toBe(0);
     expect(
@@ -230,36 +230,27 @@ describe("blocking", () => {
   });
 
   it("stops connection requests between them", async () => {
-    await expect(
-      as(db, ravi, () =>
-        db.query(
-          "insert into public.connection_requests (from_id, to_id, context) values ($1, $2, 'people')",
-          [ravi, meera],
-        ),
-      ),
-    ).rejects.toThrow();
+    await expect(as(db, ravi, () => db.query("select public.send_connection_request($1)", [meera]))).rejects.toThrow(/not_found/);
   });
 });
 
 describe("connections and messages", () => {
   it("only the two connected students can read and send messages", async () => {
-    const reqId = await as(db, asha, async () =>
-      (await db.query<{ id: string }>(
-        "insert into public.connection_requests (from_id, to_id, context, note) values ($1, $2, 'event', 'Going together?') returning id",
-        [asha, ravi],
-      )).rows[0].id,
+    await db.query("update public.profiles set onboarded_at = now() where onboarded_at is null");
+    await as(db, asha, () => db.query("select public.send_connection_request($1, 'Going together?')", [ravi]));
+    const [{ request_id: reqId }] = await as(db, ravi, async () =>
+      (await db.query<{ request_id: string }>("select request_id from public.my_connection_requests()")).rows,
     );
     // The sender cannot accept their own request.
-    await expect(as(db, asha, () => db.query("select public.accept_connection_request($1)", [reqId]))).rejects.toThrow(/not_allowed/);
+    await expect(as(db, asha, () => db.query("select public.respond_connection_request($1, true)", [reqId]))).rejects.toThrow(/not_allowed/);
     const connId = await as(db, ravi, async () =>
-      (await db.query<{ accept_connection_request: string }>("select public.accept_connection_request($1)", [reqId])).rows[0]
-        .accept_connection_request,
+      (await db.query<{ r: { connection_id: string } }>("select public.respond_connection_request($1, true) r", [reqId])).rows[0].r
+        .connection_id,
     );
-    await as(db, asha, () =>
-      db.query("insert into public.messages (connection_id, sender_id, body) values ($1, $2, 'See you there')", [connId, asha]),
-    );
+    await as(db, asha, () => db.query("select public.send_message($1, 'See you there')", [connId]));
     expect(await as(db, ravi, () => count("select count(*) n from public.messages where connection_id = $1", [connId]))).toBe(1);
     expect(await as(db, meera, () => count("select count(*) n from public.messages where connection_id = $1", [connId]))).toBe(0);
+    await expect(as(db, meera, () => db.query("select public.send_message($1, 'hi')", [connId]))).rejects.toThrow(/not_found/);
     await expect(
       as(db, meera, () =>
         db.query("insert into public.messages (connection_id, sender_id, body) values ($1, $2, 'hi')", [connId, meera]),
@@ -289,7 +280,7 @@ describe("live map", () => {
       ),
     );
     expect(await as(db, ravi, () => count("select count(*) n from public.location_sessions where profile_id = $1", [asha]))).toBe(1);
-    await as(db, asha, () => db.query("insert into public.blocks (blocker_id, blocked_id) values ($1, $2)", [asha, ravi]));
+    await as(db, asha, () => db.query("select public.block_profile($1)", [ravi]));
     expect(await as(db, ravi, () => count("select count(*) n from public.location_sessions where profile_id = $1", [asha]))).toBe(0);
   });
 
