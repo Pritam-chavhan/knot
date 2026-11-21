@@ -50,7 +50,7 @@ export function helpEmail(opts: {
           ]
         : [
             "Looks like signing in to KNOT still didn't work out. Sorry about that.",
-            'Tap the button below for a fresh code, then check Spam and Promotions for an email from KNOT (knotiitgn@gmail.com).',
+            "Tap the button below for a fresh code, then check Spam and Promotions for an email from KNOT.",
             "If it still doesn't come through, reply to this email and I'll get you in myself.",
           ];
   } else {

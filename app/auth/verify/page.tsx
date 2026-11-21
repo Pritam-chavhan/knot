@@ -45,7 +45,7 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
         <ul className="mt-1.5 list-disc space-y-1 pl-5">
           <li>
             Look in <span className="font-semibold text-ink">Spam</span> and <span className="font-semibold text-ink">Promotions</span>, or search your mail for{" "}
-            <span className="font-semibold text-ink">KNOT</span>. It comes from knotiitgn@gmail.com.
+            <span className="font-semibold text-ink">KNOT</span>. The sender&apos;s name is KNOT.
           </li>
           <li>
             Found it in Spam? Tap <span className="font-semibold text-ink">Not spam</span>, so the next one lands in your inbox.
