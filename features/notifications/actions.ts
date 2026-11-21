@@ -28,7 +28,7 @@ export async function removePushSubscription(endpoint: unknown): Promise<void> {
 }
 
 const uuid = z.string().uuid();
-const me = (p: { id: string; display_name: string | null }) => ({ id: p.id, name: p.display_name?.trim() || "A classmate" });
+const me = (p: { id: string; display_name: string | null }) => ({ id: p.id, name: p.display_name?.trim() || "Someone at IITGN" });
 
 // Called by the phone after a message or a wave is sent from the browser.
 // The database decides whether the message or wave exists and who gets told.

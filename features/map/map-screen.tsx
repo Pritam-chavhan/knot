@@ -9,7 +9,7 @@ import { browserClient } from "@/lib/supabase/browser";
 import { avatarSrc } from "@/lib/avatar";
 import { formatClock } from "@/lib/time";
 import { afterWaveSent } from "@/features/notifications/actions";
-import { ago, DURATIONS, geoError, mapError, metres, minutesLeft, type Bounds, type MapPerson, type Sharing, type Wave } from "./types";
+import { ago, APPROXIMATE_M, approximateNote, DURATIONS, geoError, mapError, metres, minutesLeft, type Bounds, type MapPerson, type Sharing, type Wave } from "./types";
 
 const CampusMap = dynamic(() => import("./campus-map"), {
   ssr: false,
@@ -120,9 +120,9 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
       const { data, error } = await supabase.rpc("update_location", { p_lat: p.lat, p_lng: p.lng, p_accuracy: Math.round(p.accuracy) });
       if (error) return;
       const r = data as { stopped?: string } & Partial<Sharing>;
-      if (r.stopped === "off_campus") ended("You've been off campus for a few minutes, so sharing stopped.");
+      if (r.stopped === "off_campus") ended("You've been away from campus for a few minutes, so sharing stopped.");
       else if (r.stopped) ended("Sharing ended.");
-      else setNotice((data as { off_campus?: boolean }).off_campus ? "Your location looks off campus. You stay where you were on the map; sharing stops if it lasts 3 minutes." : null);
+      else setNotice((data as { off_campus?: boolean }).off_campus ? "Your location looks far from campus. You stay where you were on the map; sharing stops if it lasts 3 minutes." : null);
     };
 
     if ("geolocation" in navigator) {
@@ -185,6 +185,7 @@ export function MapScreen({ bounds, initialSharing, me }: { bounds: Bounds | nul
       setNow(Date.now());
       setSharing(data as Sharing);
       setRecenter((n) => n + 1);
+      if (p.accuracy > APPROXIMATE_M) setNotice(approximateNote(p.accuracy));
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "That didn't work. Try again.");
     } finally {
@@ -308,7 +309,7 @@ function SharePanel({ busy, onStart }: { busy: boolean; onStart: (m: number, v: 
   return (
     <Panel label="Share your spot">
       <h2 className="font-display text-[22px] leading-tight font-extrabold">See who&apos;s around</h2>
-      <p className="mt-1 text-[14px] text-soft">Share your spot to see classmates who are sharing too. Nobody sees you unless you share.</p>
+      <p className="mt-1 text-[14px] text-soft">Share your spot to see who else is out and about. Nobody sees you unless you share.</p>
 
       <fieldset className="mt-3">
         <legend className="mb-1.5 text-[13px] font-bold">For</legend>
@@ -353,7 +354,7 @@ function SharePanel({ busy, onStart }: { busy: boolean; onStart: (m: number, v: 
       <Button type="button" className="mt-4 w-full" disabled={busy} onClick={() => onStart(minutes, visibility, precise)}>
         {busy ? "Getting an accurate location…" : "Share my spot"}
       </Button>
-      <p className="mt-2 text-center text-[12.5px] text-muted">Campus only. Stops on its own, or when you leave campus. No history is kept.</p>
+      <p className="mt-2 text-center text-[12.5px] text-muted">Works on and around campus. Stops on its own, or when you leave. No history is kept.</p>
     </Panel>
   );
 }

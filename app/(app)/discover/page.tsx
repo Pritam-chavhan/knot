@@ -7,6 +7,6 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   const { supabase, profile } = await requireMember();
   const { c } = await searchParams;
   const category = c && (CATEGORY_IDS as readonly string[]).includes(c) ? c : null;
-  const events = await loadFeed(supabase);
-  return <DiscoverView profile={profile} events={events} category={category} />;
+  const [events, live] = await Promise.all([loadFeed(supabase), supabase.rpc("map_live_count").then((r) => (typeof r.data === "number" ? r.data : 0))]);
+  return <DiscoverView profile={profile} events={events} category={category} live={live} />;
 }

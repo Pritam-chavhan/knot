@@ -45,7 +45,7 @@ export async function requestToJoin(_prev: ActionState, formData: FormData): Pro
   if (note.length > 280) return { error: "Keep your note under 280 characters." };
   const { error } = await supabase.rpc("request_to_join", { p_event_id: eventId.data, p_note: note || null });
   if (error) return { error: friendlyError(error) };
-  await notifyJoinRequest(supabase, { id: profile.id, name: profile.display_name?.trim() || "A classmate" }, eventId.data);
+  await notifyJoinRequest(supabase, { id: profile.id, name: profile.display_name?.trim() || "Someone at IITGN" }, eventId.data);
   refresh(eventId.data);
   return { ok: "requested" };
 }
@@ -68,7 +68,7 @@ export async function respondToRequest(_prev: ActionState, formData: FormData): 
   const accept = formData.get("accept") === "yes";
   const { error } = await supabase.rpc("respond_join_request", { p_request_id: requestId.data, p_accept: accept });
   if (error) return { error: friendlyError(error) };
-  if (accept) await notifyJoinAccepted(supabase, { id: profile.id, name: profile.display_name?.trim() || "A classmate" }, requestId.data);
+  if (accept) await notifyJoinAccepted(supabase, { id: profile.id, name: profile.display_name?.trim() || "Someone at IITGN" }, requestId.data);
   refresh(eventId.data);
   return { ok: accept ? "accepted" : "declined" };
 }

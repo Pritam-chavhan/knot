@@ -66,10 +66,10 @@ KNOT turns that inbox into one live feed of what's on, shows how many people are
   </tr>
   <tr>
     <td align="center"><img src="docs/screenshots/plans.png" alt="My plans grouped by day" width="170" /><br /><sub>My plans</sub></td>
-    <td align="center"><img src="docs/screenshots/profile.png" alt="A classmate's profile with photo, links and shared interests" width="170" /><br /><sub>Profile</sub></td>
+    <td align="center"><img src="docs/screenshots/profile.png" alt="Another student's profile with photo, links and shared interests" width="170" /><br /><sub>Profile</sub></td>
     <td align="center"><img src="docs/screenshots/chats.png" alt="Chats with a connection request and unread messages" width="170" /><br /><sub>Chats</sub></td>
     <td align="center"><img src="docs/screenshots/chat.png" alt="A one-to-one chat" width="170" /><br /><sub>Chat</sub></td>
-    <td align="center"><img src="docs/screenshots/map.png" alt="Live campus map with classmates' photos and a wave" width="170" /><br /><sub>Who's around</sub></td>
+    <td align="center"><img src="docs/screenshots/map.png" alt="Live campus map with students' photos and a wave" width="170" /><br /><sub>Who's around</sub></td>
   </tr>
   <tr>
     <td align="center"><img src="docs/screenshots/inbox.png" alt="Dashboard Inbox with a proposed venue change" width="170" /><br /><sub>Inbox</sub></td>
@@ -122,9 +122,9 @@ More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 - **Who can join.** Any `iitgn.ac.in` address, including subdomains such as `caa.iitgn.ac.in`, with `iitgn.ac.in` fixed at the end so look-alike domains are refused. Shared office and club mailboxes are blocked.
 - **What students can write.** Events, attendance, join requests, connections, messages, blocks and reports only go through database functions that enforce capacity, approval, blocks and rate limits.
-- **Live map.** Opt-in for a set time, campus only, and you see others only while sharing yourself. Rough spots are rounded in the database, so the exact position never leaves it. One current spot per person, deleted when sharing ends.
+- **Live map.** Opt-in for a set time, on and around campus (within 1.5 km of its centre), and you see others only while sharing yourself. Rough spots are rounded in the database, so the exact position never leaves it. One current spot per person, deleted when sharing ends.
 - **Private chats.** Only the two connected students can read a chat, live updates included. Admins never browse chats; they see a message only when someone reports it.
-- **What classmates can see.** Names, programme, bio, photo and links. Never email addresses, last-seen times or roles.
+- **What other students can see.** Names, programme, bio, photo and links. Never email addresses, last-seen times or roles.
 - **Photos.** Re-encoded on the server (removing phone location data), stored privately, and served only to signed-in students who can see that profile.
 - **Campus mail.** Mail that isn't about an event is discarded on arrival. Email addresses and phone numbers are removed before any mail reaches the AI, and kept text is erased after 30 days.
 - **Admins.** Every admin action is logged in an append-only audit log. The founder can't be suspended or demoted, and only the founder can change another admin.
@@ -169,7 +169,7 @@ features/
   events/               Feed, event page, hosting, join requests
   ingest/               Email feed: AI extraction and decision rules
   admin/                Dashboard, Inbox, people, events, audit log
-  profile/, people/     Your profile, photos, links, classmates' profiles
+  profile/, people/     Your profile, photos, links, other students' profiles
   chat/                 Connect, chats, blocking and reports
   map/                  The live campus map and waves
   plans/, activity/     The Plans tab and plan requests

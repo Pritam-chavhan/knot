@@ -39,7 +39,7 @@ sequenceDiagram
 |---|---|
 | Who can see a profile, event, attendee or request | Row-level security policies |
 | Capacity, join approval, hosting limits, rate limits | Database functions in one transaction, with the row locked |
-| Which profile columns classmates can read | Column-level grants (no email, last-seen time or role) |
+| Which profile columns other students can read | Column-level grants (no email, last-seen time or role) |
 | Admin changes (status, roles, events, edits) | `admin_*` database functions that check the caller and write the audit log |
 | Input shape and limits | Zod schemas on the server, then database check constraints |
 | Page security headers | `lib/security/csp.ts`, applied by middleware |
@@ -68,7 +68,7 @@ Each feature keeps its data access, server actions and UI together under `featur
 | `admin` | Dashboard stats and chart, Inbox, people, events, audit log |
 | `map` | The live campus map: sharing, positions, waves (Leaflet with OpenStreetMap tiles, loaded only on the map page) |
 | `chat` | Connect, the Chats tab, live one-to-one chat, blocking and reports |
-| `profile`, `people` | Your profile, photo upload and crop, links, classmates' profiles |
+| `profile`, `people` | Your profile, photo upload and crop, links, other students' profiles |
 | `plans`, `activity` | The Plans and Activity tabs |
 | `auth`, `discover` | Sign-in validation, the Discover screen |
 

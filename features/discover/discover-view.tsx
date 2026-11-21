@@ -2,7 +2,8 @@ import Link from "next/link";
 import { InstallPrompt } from "@/features/notifications/install-prompt";
 import type { Profile } from "@/lib/auth";
 import { DayTimeline } from "@/components/art";
-import { Avatar, ButtonLink } from "@/components/ui";
+import { Avatar } from "@/components/ui";
+import { WhosAroundCard } from "./whos-around-card";
 import { avatarSrc } from "@/lib/avatar";
 import { LiveUpdates } from "@/components/live-updates";
 import { dayLabel, istDayKey } from "@/lib/time";
@@ -23,11 +24,14 @@ export function DiscoverView({
   profile,
   events,
   category,
+  live = 0,
   now = new Date(),
 }: {
   profile: Pick<Profile, "id" | "display_name" | "role" | "avatar_path">;
   events: FeedEvent[];
   category: string | null;
+  // People sharing their spot with everyone right now.
+  live?: number;
   now?: Date;
 }) {
   const name = profile.display_name ?? "there";
@@ -39,66 +43,40 @@ export function DiscoverView({
   const chips = CATEGORIES.filter((c) => present.has(c.id));
   const shown = category ? events.filter((e) => e.category === category) : events;
   const days = groupByDay(shown);
-  const goingCount = events.filter((e) => e.my_state === "going" && e.status !== "cancelled").length;
 
   return (
     <main className="px-5 pt-6">
       <LiveUpdates knownIds={events.map((e) => e.id)} />
-      <header className="flex items-start justify-between gap-4">
+      <header className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[13px] font-semibold text-muted">{today}</p>
-          <h1 className="font-display mt-0.5 text-[30px] leading-[1.05] font-extrabold">
+          <h1 className="font-display mt-0.5 text-[27px] leading-[1.05] font-extrabold">
             {greeting}, {name.split(" ")[0]}
           </h1>
-          {goingCount > 0 && (
-            <p className="mt-1 text-[14px] text-soft">
-              You&apos;re going to {goingCount} {goingCount === 1 ? "thing" : "things"} coming up.
-            </p>
-          )}
         </div>
-        <Link href="/profile" className="shrink-0 rounded-full">
-          <span className="sr-only">Your profile</span>
-          <Avatar name={name} size={46} src={avatarSrc(profile.id, profile.avatar_path)} />
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          {profile.role === "admin" && (
+            <Link href="/admin" className="flex min-h-11 items-center rounded-full bg-ink px-3.5 text-[13px] font-bold text-white">
+              Dashboard
+            </Link>
+          )}
+          <Link href="/profile" className="rounded-full">
+            <span className="sr-only">Your profile</span>
+            <Avatar name={name} size={46} src={avatarSrc(profile.id, profile.avatar_path)} />
+          </Link>
+        </div>
       </header>
 
+      <WhosAroundCard live={live} />
       <InstallPrompt />
 
-      <Link
-        href="/map"
-        className="group relative mt-5 flex min-h-[76px] items-center gap-3.5 overflow-hidden rounded-[26px] bg-ink px-4 py-3.5 text-white transition-transform active:scale-[0.99]"
-      >
-        <span aria-hidden="true" className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-thread">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
-            <circle cx="12" cy="10" r="2.4" />
-          </svg>
-        </span>
-        <span className="relative min-w-0 flex-1">
-          <span className="block text-[17px] font-extrabold">Who&apos;s around</span>
-          <span className="block text-[13px] text-white/75">See classmates on the campus map, only while you share too</span>
-        </span>
-        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="relative text-white/70 transition-transform group-hover:translate-x-0.5">
-          <path d="M9 6l6 6-6 6" />
-        </svg>
-      </Link>
-
-      <div className="mt-5 flex gap-2">
-        <ButtonLink href="/host/new" className="h-12 flex-1">
-          Host a plan
-        </ButtonLink>
-        {profile.role === "admin" && (
-          <ButtonLink href="/admin" variant="dark" className="h-12">
-            Dashboard
-          </ButtonLink>
-        )}
-      </div>
+      <h2 className="font-display mt-7 text-[24px] font-extrabold">What&apos;s on</h2>
 
       {events.length === 0 ? (
-        <section className="mt-6 overflow-hidden rounded-[30px] bg-thread px-5 pt-6 pb-5 text-white" aria-labelledby="empty-h">
-          <h2 id="empty-h" className="font-display max-w-[16ch] text-[26px] leading-[1.05] font-extrabold">
+        <section className="mt-3 overflow-hidden rounded-[30px] bg-thread px-5 pt-6 pb-5 text-white" aria-labelledby="empty-h">
+          <h3 id="empty-h" className="font-display max-w-[16ch] text-[26px] leading-[1.05] font-extrabold">
             Nothing on the calendar yet
-          </h2>
+          </h3>
           <p className="mt-2 max-w-[32ch] text-[15px] leading-relaxed text-white/85">
             Be the first: start a plan and people can join you. Here&apos;s what the feed will look like.
           </p>
@@ -110,7 +88,7 @@ export function DiscoverView({
       ) : (
         <>
           {chips.length > 1 && (
-            <nav aria-label="Filter by kind" className="-mx-5 mt-5 overflow-x-auto px-5 pb-1">
+            <nav aria-label="Filter by kind" className="-mx-5 mt-3 overflow-x-auto px-5 pb-1">
               <ul className="flex gap-2">
                 {[{ id: null, label: "All" }, ...chips].map((c) => {
                   const active = category === c.id;
@@ -143,11 +121,11 @@ export function DiscoverView({
             days.map(([key, list]) => {
               const d = new Date(list[0].starts_at);
               return (
-                <section key={key} className="mt-7" aria-labelledby={`day-${key}`}>
-                  <h2 id={`day-${key}`} className="font-display text-[22px] font-extrabold">
+                <section key={key} className="mt-6" aria-labelledby={`day-${key}`}>
+                  <h3 id={`day-${key}`} className="text-[15px] font-bold text-soft">
                     {dayLabel(d, now)}
-                    <span className="ml-2 text-[14px] font-semibold text-muted">{list.length === 1 ? "1 event" : `${list.length} events`}</span>
-                  </h2>
+                    <span className="ml-1.5 font-semibold text-muted">· {list.length === 1 ? "1 event" : `${list.length} events`}</span>
+                  </h3>
                   <ul className="mt-3 flex flex-col gap-3">
                     {list.map((e) => (
                       <li key={e.id}>

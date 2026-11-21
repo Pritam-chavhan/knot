@@ -13,6 +13,8 @@ let kabir: string;
 const ACAD = [23.21456, 72.68571] as const;
 const HOSTEL = [23.21024, 72.6852] as const;
 const VILLAGE = [23.206, 72.68] as const;
+// About 2 km north of the campus centre, beyond the 1.5 km radius.
+const FAR = [23.2292, 72.6866] as const;
 const CITY = [23.0225, 72.5714] as const;
 
 const run = <T = Record<string, unknown>>(who: string, sql: string, params: unknown[] = []) =>
@@ -43,22 +45,20 @@ describe("sharing your spot", () => {
   it("only works on campus", async () => {
     await expect(start(asha, CITY)).rejects.toThrow(/off_campus/);
     await expect(start(asha, [ACAD[0], 72.71])).rejects.toThrow(/off_campus/);
-    // Right next to campus, but outside its outline.
-    await expect(start(asha, VILLAGE)).rejects.toThrow(/off_campus/);
+    await expect(start(asha, FAR)).rejects.toThrow(/off_campus/);
   });
 
-  it("allows for phone accuracy near the edge, and pins the spot to the campus edge", async () => {
-    // About 55 m south of the southern edge (23.2045).
-    const nearGate = [23.204, 72.6855] as const;
-    await expect(run(asha, "select public.start_sharing($1, $2, 10, 30, 'campus', true)", [nearGate[0], nearGate[1]])).rejects.toThrow(/off_campus:5\d/);
-    await run(asha, "select public.start_sharing($1, $2, 80, 30, 'campus', true)", [nearGate[0], nearGate[1]]);
+  it("works anywhere within 1.5 km of the campus centre, even with a blurred location", async () => {
+    // Palaj village, about 900 m from the centre, with an approximate (±2 km) reading.
+    await run(asha, "select public.start_sharing($1, $2, 2000, 30, 'campus', true)", [VILLAGE[0], VILLAGE[1]]);
     const { rows } = await db.query<{ lat: number }>("select lat from public.location_sessions where profile_id = $1", [asha]);
-    expect(rows[0].lat).toBeCloseTo(23.2045, 4);
+    expect(rows[0].lat).toBe(VILLAGE[0]);
     await run(asha, "select public.stop_sharing()");
   });
 
-  it("never allows more than 200 m, however rough the reading", async () => {
-    await expect(run(asha, "select public.start_sharing($1, $2, 5000, 30, 'campus', true)", [VILLAGE[0], VILLAGE[1]])).rejects.toThrow(/off_campus:\d{3}/);
+  it("says how far outside the allowed area a refused reading is", async () => {
+    // 2 km from the centre: about 500 m beyond the 1.5 km radius.
+    await expect(run(asha, "select public.start_sharing($1, $2, 10, 30, 'campus', true)", [FAR[0], FAR[1]])).rejects.toThrow(/off_campus:(4[5-9]\d|5[0-4]\d)\b/);
   });
 
   it("covers campus land north along the river", async () => {
@@ -182,6 +182,22 @@ describe("moving and stopping", () => {
   it("nobody can read or write spots directly", async () => {
     expect(await run(asha, "select * from public.location_sessions where profile_id <> $1", [asha])).toHaveLength(0);
     await expect(run(asha, "update public.location_sessions set lat = 23.21 where profile_id = $1", [asha])).rejects.toThrow(/permission denied/);
+  });
+});
+
+describe("live count", () => {
+  it("counts people sharing with everyone, never yourself or connections-only", async () => {
+    for (const who of [asha, ravi, kabir]) await run(who, "select public.stop_sharing()");
+    const count = async (who: string) => (await run<{ n: number }>(who, "select public.map_live_count() n"))[0].n;
+    expect(await count(asha)).toBe(0);
+    await start(ravi, HOSTEL, { visibility: "campus" });
+    await start(kabir, HOSTEL, { visibility: "connections" });
+    expect(await count(asha)).toBe(1);
+    // Ravi doesn't count himself.
+    expect(await count(ravi)).toBe(0);
+    await run(ravi, "select public.stop_sharing()");
+    await run(kabir, "select public.stop_sharing()");
+    await start(asha, ACAD);
   });
 });
 

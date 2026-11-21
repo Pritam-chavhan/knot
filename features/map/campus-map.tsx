@@ -50,14 +50,15 @@ export default function CampusMap({ bounds, me, people, selected, onSelect, rece
 
   useEffect(() => {
     if (!box.current || map.current) return;
-    const area = L.latLngBounds([bounds.south, bounds.west], [bounds.north, bounds.east]);
+    const centre = L.latLng(bounds.center_lat, bounds.center_lng);
+    const area = bounds.radius_m ? centre.toBounds(bounds.radius_m * 2) : L.latLngBounds([bounds.south, bounds.west], [bounds.north, bounds.east]);
     const m = L.map(box.current, {
       center: [bounds.center_lat, bounds.center_lng],
       zoom: 16,
       minZoom: 15,
       maxZoom: 19,
       zoomControl: false,
-      maxBounds: area.pad(0.35),
+      maxBounds: area.pad(0.25),
       maxBoundsViscosity: 0.9,
       attributionControl: false,
     });
@@ -65,7 +66,8 @@ export default function CampusMap({ bounds, me, people, selected, onSelect, rece
     L.tileLayer(TILE_URL, { maxZoom: 19, detectRetina: true }).addTo(m);
     // The area where sharing works.
     const outline = { color: "#5A3DF0", weight: 1.5, dashArray: "6 6", fill: true, fillOpacity: 0.03, interactive: false };
-    if (bounds.polygon && bounds.polygon.length >= 3) L.polygon(bounds.polygon, outline).addTo(m);
+    if (bounds.radius_m) L.circle(centre, { ...outline, radius: bounds.radius_m }).addTo(m);
+    else if (bounds.polygon && bounds.polygon.length >= 3) L.polygon(bounds.polygon, outline).addTo(m);
     else L.rectangle(area, outline).addTo(m);
     m.on("click", () => onSelectRef.current(null));
     layer.current = L.layerGroup().addTo(m);

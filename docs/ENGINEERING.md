@@ -8,11 +8,11 @@ These rules apply to every change in KNOT. CI checks what it can; the rest is ch
 2. Pages and server actions act as the signed-in student (`lib/supabase/server.ts`). The service-role client (`lib/supabase/admin.ts`) is server-only and used only where a student can't act for themselves: the sign-up check, photo storage, account deletion and the email feed.
 3. Students never write events, Going or Interested rows, or join requests directly. They go through database functions that enforce capacity, host approval, blocks and rate limits in one transaction.
 4. Admin changes go through `admin_*` database functions that check the caller and write the append-only audit log in the same transaction.
-5. Classmates can read only public profile fields. A new private column is never added to the column-level grants.
+5. Other students can read only public profile fields. A new private column is never added to the column-level grants.
 6. Blocks override everything: discovery, profiles, attendee lists, requests, messages and the map.
 7. Attendee names are shown only for students who chose to be visible. Counts come from `event_counts()` without exposing rows.
 8. Chat only exists inside a mutual connection.
-9. Live map: sharing is opt-in per session, campus only, visible only to people sharing too, can be stopped instantly, expires automatically, and keeps no history (one current row per student).
+9. Live map: sharing is opt-in per session, on and around campus (1.5 km), visible only to people sharing too, can be stopped instantly, expires automatically, and keeps no history (one current row per student).
 10. Institute and club events are tagged Campus; plans started by students are always tagged Student-hosted.
 11. Content from outside (campus mail, AI answers, uploads, links) is untrusted. It is validated field by field before it is stored or shown.
 12. Every page sends a nonce-based Content Security Policy and the headers in `lib/security/csp.ts`. Third-party scripts are not allowed. Any new remote origin is added there deliberately, with a test.

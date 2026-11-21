@@ -42,7 +42,7 @@ const loadMember = cache(async () => {
   if (!id) redirect("/");
   const user = { id };
 
-  // Your own full profile (email, role) comes from a function: classmates can
+  // Your own full profile (email, role) comes from a function: other students can
   // only read public profile fields.
   const { data: rows } = await supabase.rpc("my_profile");
   const profile = (rows as Profile[] | null)?.[0];

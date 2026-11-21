@@ -27,7 +27,7 @@ export async function sendConnectionRequest(_prev: ChatActionState, fd: FormData
   const { data, error } = await supabase.rpc("send_connection_request", { p_to: to.data, p_note: note || null });
   if (error) return { error: chatError(error) };
   const result = data as { state: string; connection_id?: string };
-  const me = { id: profile.id, name: profile.display_name?.trim() || "A classmate" };
+  const me = { id: profile.id, name: profile.display_name?.trim() || "Someone at IITGN" };
   if (result.state === "connected" && result.connection_id) await notifyConnected(supabase, me, result.connection_id);
   else await notifyConnectionRequest(supabase, me, to.data);
   refreshPerson(to.data);
@@ -54,7 +54,7 @@ export async function respondConnectionRequest(_prev: ChatActionState, fd: FormD
   if (error) return { error: chatError(error) };
   refreshPerson(from.data);
   const result = data as { state: string; connection_id?: string };
-  if (result.connection_id) await notifyConnected(supabase, { id: profile.id, name: profile.display_name?.trim() || "A classmate" }, result.connection_id);
+  if (result.connection_id) await notifyConnected(supabase, { id: profile.id, name: profile.display_name?.trim() || "Someone at IITGN" }, result.connection_id);
   if (result.connection_id && fd.get("open") === "1") redirect(`/chats/${result.connection_id}`);
   return { ok: result.state };
 }

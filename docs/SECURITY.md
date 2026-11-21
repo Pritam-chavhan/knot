@@ -13,7 +13,7 @@ KNOT holds students' names, photos, plans and campus mail, so the rules below ar
 
 | | Students | Admins | Founder |
 |---|---|---|---|
-| See classmates' names, photos, bios, links | Yes, except people they've blocked or who blocked them | Yes | Yes |
+| See other students' names, photos, bios, links | Yes, except people they've blocked or who blocked them | Yes | Yes |
 | See email addresses, last-seen times, roles | Only their own | Through the dashboard | Through the dashboard |
 | Mark Going or Interested, host plans, request to join | Through database functions with capacity, approval and rate limits | Same | Same |
 | Publish, edit, cancel or hide institute and club events | No | Yes, logged | Yes, logged |
@@ -26,7 +26,7 @@ Admin rights stop at the institution boundary.
 ## Data protection
 
 - **Row-level security** is on for every table. Policies decide which rows each person sees.
-- **Column-level grants** keep classmates from reading private profile fields at all.
+- **Column-level grants** keep other students from reading private profile fields at all.
 - **Database functions** carry every write with rules attached (capacity, approval, admin actions). They lock the row, check the caller and log admin actions in the same transaction.
 - **The audit log** is append-only: a trigger refuses edits and deletes, even from the server.
 - **Attendance visibility** is off by default. Counts include everyone; names appear only for students who opt in.
@@ -34,7 +34,7 @@ Admin rights stop at the institution boundary.
 
 ## Connections and chat
 
-- **Requests** go only to active classmates at the same college who accept requests, at most 20 a day. A declined request keeps looking "sent" to the sender for 30 days, so nobody learns they were turned down and nobody can ask again and again.
+- **Requests** go only to active students at the same college who accept requests, at most 20 a day. A declined request keeps looking "sent" to the sender for 30 days, so nobody learns they were turned down and nobody can ask again and again.
 - **Chats** exist only between two connected students. Only they can read it, including through live updates. Messages are limited to 2,000 characters and 60 per five minutes.
 - **Blocking** closes the chat for both people but keeps it, hidden, so it can still be reported. Removing a connection deletes the chat for both.
 - **Reports** save what was reported at that moment: the profile, the event, or the message and up to 20 messages before it. Admins see a chat only through a report; they can't browse chats. Acting on a report (suspending someone or hiding an event) closes every open report about the same person or event and is written to the audit log.
@@ -44,7 +44,7 @@ Admin rights stop at the institution boundary.
 - **Opt-in, for a set time.** Sharing lasts 15, 30, 60 or 120 minutes and can be stopped at once. Stopping deletes the spot.
 - **You see others only while you share.** Nobody can watch the map without being on it.
 - **Your choice of audience and precision.** Everyone at IITGN, or connections only; an exact spot, or a rough area rounded to about 100 metres inside the database.
-- **Campus only.** Positions outside the campus outline (`institutions.map_bounds.polygon`, which follows IITGN between the river and the highway and leaves out Palaj village and nearby settlements) are refused. Because phone locations drift, a reading within its own stated accuracy of the edge (at least 50 m, never more than 200 m) counts as on campus and is pinned to the edge, so an off-campus home is never shown. Sharing stops if readings stay off campus for 3 minutes. A college with no outline or box set can't share at all.
+- **On and around campus only.** A position counts if it is within 1.5 km of the campus centre (`institutions.map_bounds.radius_m`), which covers all of IITGN with room for phones that share an approximate, blurred location. Outside that, the campus outline (`map_bounds.polygon`) still applies, and a reading within its own stated accuracy of the edge (at least 50 m, never more than 200 m) is pinned to the edge. Anything else is refused with how far away it was, and the app explains how to turn on precise location. Sharing stops if readings stay away for 3 minutes. A college with no area set can't share at all. Discover shows only a count of people sharing with everyone (`map_live_count`), never who or where.
 - **No history.** One current row per student, overwritten as they move (at most once every 10 seconds) and deleted when sharing ends or expires.
 - **Blocks and suspensions** hide people from each other on the map, both ways. Waves go only to people you can see, once per half hour, and are deleted after a day.
 - **Map tiles** come from OpenStreetMap. They show which part of campus a viewer is looking at, never where anyone is.
