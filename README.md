@@ -52,7 +52,7 @@ KNOT turns that inbox into one live feed of what's on, shows how many people are
 | **Live campus email feed** | A small script in the founder's Gmail sends new campus mailing-list mail every minute. AI decides whether each mail announces an event, changes one (new time, new venue, cancelled) or is something else. Clear events from verified IITGN senders go live on their own; everything else waits for a quick look. [How it works](docs/EMAIL_FEED.md) |
 | **Inbox** | Events to check (publish, edit or discard), proposed changes shown as before and after, and the feed's health and weekly numbers. |
 | **Reports** | Each report shows exactly what was reported at that moment (for a message, the chat before it), with Dismiss, Hide event and Suspend, all logged. |
-| **Founder dashboard** | Sign-ups, daily, weekly and monthly active students, a 30-day chart, people search, suspend and restore, admin roles, event moderation and an append-only audit log. |
+| **Founder dashboard** | A live sign-up tracker (code sent, verified, joined, with stuck students flagged), push alerts for new sign-ups, new members and new plans, daily, weekly and monthly active students, a 30-day chart, people search, suspend and restore, admin roles, event moderation and an append-only audit log. |
 
 ## Screenshots
 
