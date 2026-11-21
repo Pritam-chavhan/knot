@@ -34,6 +34,7 @@ Admin rights stop at the institution boundary.
 
 ## Connections and chat
 
+- **Sign-up list** (`admin_signups`) is for admins only and limited to their own college. Founder alerts (someone starts signing up, joins, or hosts a plan) go only to phones of accounts marked as founder, once per event.
 - **People search** (`people_directory`, `people_count`) runs in the database as the student: it lists only active, onboarded students at the same college, leaves out blocked people both ways, matches search text literally (wildcards are escaped) and caps searches at 60 characters and results at 60.
 - **Requests** go only to active students at the same college who accept requests, at most 20 a day. A declined request keeps looking "sent" to the sender for 30 days, so nobody learns they were turned down and nobody can ask again and again.
 - **Chats** exist only between two connected students. Only they can read it, including through live updates. Messages are limited to 2,000 characters and 60 per five minutes.

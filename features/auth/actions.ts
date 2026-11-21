@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { codeSchema, toInstitutionEmail } from "./validation";
+import { alertSignupStarted } from "@/features/notifications/send";
 
 export type FormState = { error?: string; email?: string; sent?: number };
 
@@ -31,6 +32,11 @@ async function requestCode(rawEmail: string): Promise<{ email?: string; error?: 
     email,
     options: { shouldCreateUser: true, emailRedirectTo: `${origin}/auth/callback` },
   });
+  if (!otpError) {
+    // Tell the founder when someone new starts joining (not returning students).
+    const { data: existing } = await admin.from("profiles").select("onboarded_at").eq("email", email).maybeSingle<{ onboarded_at: string | null }>();
+    if (!existing?.onboarded_at) alertSignupStarted(email);
+  }
   if (otpError) {
     // A code for this email went out in the last minute: use that one.
     if (otpError.code === "over_email_send_rate_limit" && /\d+ seconds/.test(otpError.message)) return { email };

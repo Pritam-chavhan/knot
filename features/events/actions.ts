@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin, requireMember } from "@/lib/auth";
 import { adminEditSchema, adminEventSchema, endsAtFrom, hostEventSchema } from "./validation";
 import { friendlyError } from "./errors";
-import { notifyJoinAccepted, notifyJoinRequest } from "@/features/notifications/send";
+import { alertHosted, notifyJoinAccepted, notifyJoinRequest } from "@/features/notifications/send";
 
 export type ActionState = { error?: string; ok?: string; field?: string; values?: Record<string, string> };
 
@@ -90,7 +90,7 @@ function fieldError(issues: z.core.$ZodIssue[], fd: FormData): ActionState {
 }
 
 export async function createHostedEvent(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { supabase } = await requireMember();
+  const { supabase, profile } = await requireMember();
   const parsed = hostEventSchema.safeParse({
     title: formData.get("title") ?? "",
     category: formData.get("category") ?? "",
@@ -116,6 +116,7 @@ export async function createHostedEvent(_prev: ActionState, formData: FormData):
   });
   if (error?.message.includes("rate_limited")) return { error: "You've started 5 plans today. Try again tomorrow.", values: valuesOf(formData) };
   if (error || !eventId) return { error: friendlyError(error, "Your plan didn't save. Try again in a moment."), values: valuesOf(formData) };
+  alertHosted(String(eventId), profile.display_name?.trim() || "Someone at IITGN", v.title);
   revalidatePath("/", "layout");
   redirect(`/events/${eventId}?new=1`);
 }

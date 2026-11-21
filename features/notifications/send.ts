@@ -2,6 +2,7 @@ import "server-only";
 import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { notify } from "@/lib/push";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Every lookup here runs as the signed-in student, so row-level security
 // decides what they can point a notification at. Who gets notified always
@@ -89,5 +90,53 @@ export async function notifyJoinAccepted(supabase: SupabaseClient, me: Me, reque
   if (!ev || ev.host_id !== me.id) return;
   after(() =>
     notify(req.profile_id, `joined:${req.id}:${req.updated_at}`, { title: `You're in: ${ev.title}`, body: `${first(me.name)} accepted your request.`, url: `/events/${req.event_id}`, tag: `join-${req.event_id}` }),
+  );
+}
+
+// Alerts for the founder: someone starts signing up, finishes joining, or
+// hosts a plan. Each goes once per founder. They carry only what the founder
+// can already see in the dashboard.
+async function notifyFounders(key: string, payload: { title: string; body: string; url: string; tag: string }) {
+  try {
+    const db = createAdminClient();
+    const { data } = await db.from("profiles").select("id").eq("is_founder", true).eq("status", "active").limit(5);
+    await Promise.all(((data ?? []) as { id: string }[]).map((f) => notify(f.id, `${key}:${f.id}`, payload)));
+  } catch {
+    // Best effort.
+  }
+}
+
+const istDay = () => new Date(Date.now() + 5.5 * 3_600_000).toISOString().slice(0, 10);
+
+export function alertSignupStarted(email: string) {
+  after(() =>
+    notifyFounders(`founder-signup:${email}:${istDay()}`, {
+      title: "Someone is signing up",
+      body: `${email} asked for a sign-in code.`,
+      url: "/admin/signups",
+      tag: "founder-signups",
+    }),
+  );
+}
+
+export function alertJoined(id: string, name: string, about: string) {
+  after(() =>
+    notifyFounders(`founder-joined:${id}`, {
+      title: `${name} joined KNOT 🎉`,
+      body: about || "Finished setting up their profile.",
+      url: `/people/${id}`,
+      tag: "founder-signups",
+    }),
+  );
+}
+
+export function alertHosted(eventId: string, name: string, title: string) {
+  after(() =>
+    notifyFounders(`founder-hosted:${eventId}`, {
+      title: `${name} is hosting a plan`,
+      body: title,
+      url: `/events/${eventId}`,
+      tag: `founder-hosted-${eventId}`,
+    }),
   );
 }

@@ -6,6 +6,7 @@ import { requireMember } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { onboardingSchema } from "@/features/auth/validation";
 import { LINK_KINDS, parseHandle } from "./links";
+import { alertJoined } from "@/features/notifications/send";
 
 export type ProfileField = "displayName" | "programme" | "batchYear" | "bio" | "interests" | "github" | "instagram" | "linkedin";
 export type ProfileValues = {
@@ -73,7 +74,11 @@ export async function saveProfile(_prev: ProfileFormState, formData: FormData): 
   if (privacyError) return fail("Your privacy setting didn't save. Try again in a moment.");
 
   revalidatePath("/", "layout");
-  if (!profile.onboarded_at) redirect("/discover");
+  if (!profile.onboarded_at) {
+    const batch = v.batchYear ? `'${String(v.batchYear).slice(-2)}` : "";
+    alertJoined(user.id, v.displayName, [v.programme, batch].filter(Boolean).join(" "));
+    redirect("/discover");
+  }
   return { saved: true };
 }
 
