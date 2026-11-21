@@ -12,7 +12,7 @@ These rules apply to every change in KNOT. CI checks what it can; the rest is ch
 6. Blocks override everything: discovery, profiles, attendee lists, requests, messages and the map.
 7. Attendee names are shown only for students who chose to be visible. Counts come from `event_counts()` without exposing rows.
 8. Chat only exists inside a mutual connection.
-9. Live map: sharing is opt-in per session, can be stopped instantly, expires automatically, and keeps no history (one current row per student).
+9. Live map: sharing is opt-in per session, campus only, visible only to people sharing too, can be stopped instantly, expires automatically, and keeps no history (one current row per student).
 10. Institute and club events are tagged Campus; plans started by students are always tagged Student-hosted.
 11. Content from outside (campus mail, AI answers, uploads, links) is untrusted. It is validated field by field before it is stored or shown.
 12. Every page sends a nonce-based Content Security Policy and the headers in `lib/security/csp.ts`. Third-party scripts are not allowed. Any new remote origin is added there deliberately, with a test.

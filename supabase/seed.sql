@@ -4,6 +4,11 @@ insert into public.institutions (name, email_domain)
 values ('IIT Gandhinagar', 'iitgn.ac.in')
 on conflict (email_domain) do nothing;
 
+-- The live map only works inside this box (between the Sabarmati and the main road).
+update public.institutions
+set map_bounds = '{"south": 23.2030, "north": 23.2300, "west": 72.6790, "east": 72.6960, "center_lat": 23.2125, "center_lng": 72.6855}'::jsonb
+where email_domain = 'iitgn.ac.in' and map_bounds is null;
+
 -- Shared office, club, committee and event addresses that must not sign up.
 -- Patterns use SQL LIKE syntax against the part before the @.
 insert into public.blocked_email_patterns (institution_id, pattern, note)

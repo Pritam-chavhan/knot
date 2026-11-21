@@ -61,6 +61,25 @@ export function DiscoverView({
         </Link>
       </header>
 
+      <Link
+        href="/map"
+        className="group relative mt-5 flex min-h-[76px] items-center gap-3.5 overflow-hidden rounded-[26px] bg-ink px-4 py-3.5 text-white transition-transform active:scale-[0.99]"
+      >
+        <span aria-hidden="true" className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-thread">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+            <circle cx="12" cy="10" r="2.4" />
+          </svg>
+        </span>
+        <span className="relative min-w-0 flex-1">
+          <span className="block text-[17px] font-extrabold">Who&apos;s around</span>
+          <span className="block text-[13px] text-white/75">See classmates on the campus map, only while you share too</span>
+        </span>
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="relative text-white/70 transition-transform group-hover:translate-x-0.5">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </Link>
+
       <div className="mt-5 flex gap-2">
         <ButtonLink href="/host/new" className="h-12 flex-1">
           Host a plan

@@ -39,6 +39,16 @@ Admin rights stop at the institution boundary.
 - **Blocking** closes the chat for both people but keeps it, hidden, so it can still be reported. Removing a connection deletes the chat for both.
 - **Reports** save what was reported at that moment: the profile, the event, or the message and up to 20 messages before it. Admins see a chat only through a report; they can't browse chats. Acting on a report (suspending someone or hiding an event) closes every open report about the same person or event and is written to the audit log.
 
+## Live map
+
+- **Opt-in, for a set time.** Sharing lasts 15, 30, 60 or 120 minutes and can be stopped at once. Stopping deletes the spot.
+- **You see others only while you share.** Nobody can watch the map without being on it.
+- **Your choice of audience and precision.** Everyone at IITGN, or connections only; an exact spot, or a rough area rounded to about 100 metres inside the database.
+- **Campus only.** Positions outside the campus box (`institutions.map_bounds`) are refused, and leaving campus stops sharing. A college with no box set can't share at all.
+- **No history.** One current row per student, overwritten as they move (at most once every 10 seconds) and deleted when sharing ends or expires.
+- **Blocks and suspensions** hide people from each other on the map, both ways. Waves go only to people you can see, once per half hour, and are deleted after a day.
+- **Map tiles** come from OpenStreetMap. They show which part of campus a viewer is looking at, never where anyone is.
+
 ## Photos and links
 
 - **Upload checks.** Uploads are checked by their first bytes, limited in size and pixel count, and processed one at a time.

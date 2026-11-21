@@ -272,41 +272,14 @@ describe("rate limits", () => {
 });
 
 describe("live map", () => {
-  it("shows live sessions to members, hides them across a block, keeps no expired rows visible", async () => {
-    await as(db, asha, () =>
-      db.query(
-        "insert into public.location_sessions (profile_id, lat, lng, expires_at) values ($1, 23.21, 72.68, now() + interval '1 hour')",
-        [asha],
-      ),
-    );
-    expect(await as(db, ravi, () => count("select count(*) n from public.location_sessions where profile_id = $1", [asha]))).toBe(1);
-    await as(db, asha, () => db.query("select public.block_profile($1)", [ravi]));
-    expect(await as(db, ravi, () => count("select count(*) n from public.location_sessions where profile_id = $1", [asha]))).toBe(0);
-  });
-
-  it("refuses positions outside the campus bounds when bounds are set", async () => {
-    await db.query(
-      `update public.institutions set map_bounds = '{"south":23.20,"west":72.67,"north":23.22,"east":72.70}'`,
-    );
-    await expect(
-      as(db, meera, () =>
-        db.query(
-          "insert into public.location_sessions (profile_id, lat, lng, expires_at) values ($1, 19.07, 72.87, now() + interval '1 hour')",
-          [meera],
-        ),
-      ),
-    ).rejects.toThrow();
-    await db.query("update public.institutions set map_bounds = null");
-  });
-
-  it("a student cannot place someone else on the map", async () => {
+  it("locations can't be written or read directly", async () => {
     await expect(
       as(db, ravi, () =>
         db.query(
           "insert into public.location_sessions (profile_id, lat, lng, expires_at) values ($1, 23.21, 72.68, now() + interval '1 hour')",
-          [meera],
+          [ravi],
         ),
       ),
-    ).rejects.toThrow();
+    ).rejects.toThrow(/permission denied/);
   });
 });

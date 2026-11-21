@@ -16,6 +16,12 @@ describe("content security policy", () => {
     expect(csp).toContain("connect-src 'self' https://proj.supabase.co wss://proj.supabase.co");
   });
 
+  it("loads map images only from OpenStreetMap's tile server", () => {
+    const csp = buildCsp({ ...base, dev: false });
+    expect(csp).toContain("img-src 'self' data: blob: https://tile.openstreetmap.org;");
+    expect(csp).not.toMatch(/img-src[^;]*\*/);
+  });
+
   it("cannot be framed and blocks plugins", () => {
     const csp = buildCsp({ ...base, dev: false });
     expect(csp).toContain("frame-ancestors 'none'");

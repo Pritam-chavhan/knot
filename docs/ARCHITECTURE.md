@@ -57,6 +57,7 @@ Each feature keeps its data access, server actions and UI together under `featur
 | `events` | Feed and event queries, Going and Interested, hosting, join requests, the event page |
 | `ingest` | Email feed: AI extraction (`extract.ts`), decision rules (`decide.ts`), processing (`process.ts`) |
 | `admin` | Dashboard stats and chart, Inbox, people, events, audit log |
+| `map` | The live campus map: sharing, positions, waves (Leaflet with OpenStreetMap tiles, loaded only on the map page) |
 | `chat` | Connect, the Chats tab, live one-to-one chat, blocking and reports |
 | `profile`, `people` | Your profile, photo upload and crop, links, classmates' profiles |
 | `plans`, `activity` | The Plans and Activity tabs |
